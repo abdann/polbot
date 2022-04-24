@@ -1,9 +1,11 @@
 # temp.py
 import os
 import json
+import asyncio
+import emoji
 
-import nextcord
-from nextcord.ext import commands
+import discord
+from discord.ext import commands
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -12,11 +14,10 @@ GUILD = os.getenv('DISCORD_GUILD')
 
 description = "BING CHILLING"
 
-intents = nextcord.Intents.default()
+intents = discord.Intents.default()
 intents.members = True
-intents.message_content = True
 
-bot = commands.Bot(command_prefix='.pol', description=description, intents=intents)
+bot = commands.Bot(command_prefix='.pol ', description=description, intents=intents)
 
 
 
@@ -26,16 +27,9 @@ with open("reactiontriggers.json") as f:
     reaction_triggers = json.load(f)
 
 
-
-
-
-
-
-
-
 @bot.event
 async def on_ready():
-    guild = nextcord.utils.find(lambda g: g.name == GUILD, bot.guilds)
+    guild = discord.utils.find(lambda g: g.name == GUILD, bot.guilds)
     
     print(
         f'{bot.user} is connected to the following server: \n'
@@ -53,11 +47,12 @@ async def on_message(message):
     #     await message.add_reaction(emoji)
     
     # if message.content.find("sus") != -1:
-    #     guild = nextcord.utils.find(lambda g: g.name == GUILD, bot.guilds)
-    #     emoji = nextcord.utils.get(guild.emojis, name='sus')
+    #     guild = discord.utils.find(lambda g: g.name == GUILD, bot.guilds)
+    #     emoji = discord.utils.get(guild.emojis, name='sus')
     #     await message.add_reaction(emoji)
     
-    react_emojis = string_search()
+    react_emojis = string_search(reaction_triggers, message)
+    await message.reply(f"{message.guild.emojis}")
     if len(react_emojis) != 0:
         #async wrapper func for queueing add_reaction funcs
         async def coro(message, react_emoji):
@@ -76,6 +71,12 @@ def string_search(defined_triggers: dict, message):
     # now append any positive hits (THIS IS BLOCKING CODE)
     for trigger, reaction in defined_triggers.items():
         if content.find(trigger) != -1:
-            reactions.append(reaction)
+            react = discord.utils.get(message.guild.emojis, name=reaction)
+            if react is not None:
+                reactions.append(react)
     return reactions
-client.run(TOKEN)
+
+
+
+
+bot.run(TOKEN)
