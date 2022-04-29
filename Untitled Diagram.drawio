@@ -1,4 +1,4 @@
-<mxfile host="app.diagrams.net" modified="2022-04-29T05:46:10.276Z" agent="5.0 (X11)" etag="nmqwLr2l9unrb8EYT_M4" version="17.5.0" type="github">
+<mxfile host="app.diagrams.net" modified="2022-04-29T07:19:22.317Z" agent="5.0 (X11)" etag="cTPlt1Umd8XULJPf4X3A" version="17.5.0" type="github">
   <diagram id="C5RBs43oDa-KdzZeNtuy" name="Page-1">
     <mxGraphModel dx="638" dy="793" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
@@ -119,21 +119,24 @@
           </mxGeometry>
         </mxCell>
         <mxCell id="futbrR1-YWrO3oFF-76m-0" value="ServerConfigHandler" style="swimlane;fontStyle=2;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeLast=0;collapsible=1;marginBottom=0;rounded=0;shadow=0;strokeWidth=1;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
-          <mxGeometry x="50" y="1070" width="160" height="138" as="geometry">
+          <mxGeometry x="20" y="1070" width="220" height="164" as="geometry">
             <mxRectangle x="230" y="140" width="160" height="26" as="alternateBounds" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="futbrR1-YWrO3oFF-76m-3" value="&#xa;" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" vertex="1" parent="futbrR1-YWrO3oFF-76m-0">
-          <mxGeometry y="26" width="160" height="26" as="geometry" />
+        <mxCell id="futbrR1-YWrO3oFF-76m-3" value="default_parameters:dict" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" vertex="1" parent="futbrR1-YWrO3oFF-76m-0">
+          <mxGeometry y="26" width="220" height="26" as="geometry" />
         </mxCell>
         <mxCell id="futbrR1-YWrO3oFF-76m-4" value="" style="line;html=1;strokeWidth=1;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;" vertex="1" parent="futbrR1-YWrO3oFF-76m-0">
-          <mxGeometry y="52" width="160" height="8" as="geometry" />
+          <mxGeometry y="52" width="220" height="8" as="geometry" />
         </mxCell>
-        <mxCell id="futbrR1-YWrO3oFF-76m-5" value="getServerConfig: dict" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="futbrR1-YWrO3oFF-76m-0">
-          <mxGeometry y="60" width="160" height="26" as="geometry" />
+        <mxCell id="futbrR1-YWrO3oFF-76m-5" value="getServerAutoBanWhitelist(ctx): dict" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="futbrR1-YWrO3oFF-76m-0">
+          <mxGeometry y="60" width="220" height="26" as="geometry" />
         </mxCell>
-        <mxCell id="futbrR1-YWrO3oFF-76m-13" value="Purchase Parking Pass" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="futbrR1-YWrO3oFF-76m-0">
-          <mxGeometry y="86" width="160" height="26" as="geometry" />
+        <mxCell id="futbrR1-YWrO3oFF-76m-25" value="getServerParameters(ctx): dict" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="futbrR1-YWrO3oFF-76m-0">
+          <mxGeometry y="86" width="220" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="futbrR1-YWrO3oFF-76m-26" value="createServerFolder(ctx): dict" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="futbrR1-YWrO3oFF-76m-0">
+          <mxGeometry y="112" width="220" height="26" as="geometry" />
         </mxCell>
         <mxCell id="futbrR1-YWrO3oFF-76m-6" value="" style="endArrow=none;startArrow=diamondThin;endFill=0;startFill=1;html=1;verticalAlign=bottom;labelBackgroundColor=none;strokeWidth=1;startSize=8;endSize=8;rounded=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="WIyWlLk6GJQsqaUBKTNV-1" source="futbrR1-YWrO3oFF-76m-17" target="futbrR1-YWrO3oFF-76m-0">
           <mxGeometry width="160" relative="1" as="geometry">
@@ -178,6 +181,30 @@
         </mxCell>
         <mxCell id="futbrR1-YWrO3oFF-76m-22" value="__init__" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="futbrR1-YWrO3oFF-76m-17">
           <mxGeometry y="48" width="160" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="futbrR1-YWrO3oFF-76m-28" value="ReactionHandler" style="swimlane;fontStyle=2;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeLast=0;collapsible=1;marginBottom=0;rounded=0;shadow=0;strokeWidth=1;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
+          <mxGeometry x="250" y="1070" width="220" height="164" as="geometry">
+            <mxRectangle x="230" y="140" width="160" height="26" as="alternateBounds" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="futbrR1-YWrO3oFF-76m-30" value="" style="line;html=1;strokeWidth=1;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;" vertex="1" parent="futbrR1-YWrO3oFF-76m-28">
+          <mxGeometry y="26" width="220" height="8" as="geometry" />
+        </mxCell>
+        <mxCell id="futbrR1-YWrO3oFF-76m-31" value="getServerAutoBanWhitelist(ctx): dict" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="futbrR1-YWrO3oFF-76m-28">
+          <mxGeometry y="34" width="220" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="futbrR1-YWrO3oFF-76m-32" value="getServerParameters(ctx): dict" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="futbrR1-YWrO3oFF-76m-28">
+          <mxGeometry y="60" width="220" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="futbrR1-YWrO3oFF-76m-33" value="createServerFolder(ctx): dict" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="futbrR1-YWrO3oFF-76m-28">
+          <mxGeometry y="86" width="220" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="futbrR1-YWrO3oFF-76m-34" value="" style="endArrow=none;startArrow=diamondThin;endFill=0;startFill=1;html=1;verticalAlign=bottom;labelBackgroundColor=none;strokeWidth=1;startSize=8;endSize=8;rounded=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="WIyWlLk6GJQsqaUBKTNV-1" source="futbrR1-YWrO3oFF-76m-17" target="futbrR1-YWrO3oFF-76m-28">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="480" y="930" as="sourcePoint" />
+            <mxPoint x="250" y="1060" as="targetPoint" />
+            <Array as="points" />
+          </mxGeometry>
         </mxCell>
       </root>
     </mxGraphModel>
