@@ -1,11 +1,11 @@
-<mxfile host="app.diagrams.net" modified="2022-04-29T17:31:14.450Z" agent="5.0 (X11)" etag="OimmWuFwKhCWr3gwhIFa" version="17.5.0" type="github">
+<mxfile host="app.diagrams.net" modified="2022-04-30T02:54:03.429Z" agent="5.0 (X11)" etag="mejg25gdy6Oivayp0cWN" version="17.5.0" type="github">
   <diagram id="C5RBs43oDa-KdzZeNtuy" name="Page-1">
-    <mxGraphModel dx="1790" dy="1036" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="2221" dy="810" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="WIyWlLk6GJQsqaUBKTNV-0" />
         <mxCell id="WIyWlLk6GJQsqaUBKTNV-1" parent="WIyWlLk6GJQsqaUBKTNV-0" />
         <mxCell id="futbrR1-YWrO3oFF-76m-0" value="ServerConfigHandler" style="swimlane;fontStyle=2;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeLast=0;collapsible=1;marginBottom=0;rounded=0;shadow=0;strokeWidth=1;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
-          <mxGeometry x="-430" y="1105" width="390" height="290" as="geometry">
+          <mxGeometry x="-430" y="1105" width="390" height="375" as="geometry">
             <mxRectangle x="230" y="140" width="160" height="26" as="alternateBounds" />
           </mxGeometry>
         </mxCell>
@@ -35,6 +35,12 @@
         </mxCell>
         <mxCell id="16yLQQdebjXsxoNWo0BA-5" value="addInServerPolder(ctx, message:discord.Message)" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="futbrR1-YWrO3oFF-76m-0">
           <mxGeometry y="216" width="390" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="16yLQQdebjXsxoNWo0BA-45" value="setBackupServer(ctx, server:discord.Guild)" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="futbrR1-YWrO3oFF-76m-0">
+          <mxGeometry y="242" width="390" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="16yLQQdebjXsxoNWo0BA-58" value="getBackupServer(ctx)" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="futbrR1-YWrO3oFF-76m-0">
+          <mxGeometry y="268" width="390" height="26" as="geometry" />
         </mxCell>
         <mxCell id="futbrR1-YWrO3oFF-76m-6" value="" style="endArrow=none;startArrow=diamondThin;endFill=0;startFill=1;html=1;verticalAlign=bottom;labelBackgroundColor=none;strokeWidth=1;startSize=8;endSize=8;rounded=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" parent="WIyWlLk6GJQsqaUBKTNV-1" source="futbrR1-YWrO3oFF-76m-17" target="futbrR1-YWrO3oFF-76m-0" edge="1">
           <mxGeometry width="160" relative="1" as="geometry">
@@ -118,6 +124,9 @@
         <mxCell id="16yLQQdebjXsxoNWo0BA-23" value="is_default_emoji(reaction)" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="futbrR1-YWrO3oFF-76m-28">
           <mxGeometry y="188" width="430" height="16" as="geometry" />
         </mxCell>
+        <mxCell id="16yLQQdebjXsxoNWo0BA-59" value="if_can_shitpost_here(ctx)" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="futbrR1-YWrO3oFF-76m-28">
+          <mxGeometry y="204" width="430" height="16" as="geometry" />
+        </mxCell>
         <mxCell id="futbrR1-YWrO3oFF-76m-34" value="" style="endArrow=none;startArrow=diamondThin;endFill=0;startFill=1;html=1;verticalAlign=bottom;labelBackgroundColor=none;strokeWidth=1;startSize=8;endSize=8;rounded=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" parent="WIyWlLk6GJQsqaUBKTNV-1" source="futbrR1-YWrO3oFF-76m-17" target="futbrR1-YWrO3oFF-76m-28" edge="1">
           <mxGeometry width="160" relative="1" as="geometry">
             <mxPoint x="110" y="965" as="sourcePoint" />
@@ -127,7 +136,7 @@
         </mxCell>
         <mxCell id="16yLQQdebjXsxoNWo0BA-24" value="ModerationHandler" style="swimlane;fontStyle=0;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeLast=0;collapsible=1;marginBottom=0;rounded=0;shadow=0;strokeWidth=1;hachureGap=4;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
           <mxGeometry x="410" y="1105" width="330" height="315" as="geometry">
-            <mxRectangle x="270" y="530" width="160" height="26" as="alternateBounds" />
+            <mxRectangle x="410" y="1105" width="160" height="26" as="alternateBounds" />
           </mxGeometry>
         </mxCell>
         <mxCell id="16yLQQdebjXsxoNWo0BA-27" value="bot: PolBot" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" vertex="1" parent="16yLQQdebjXsxoNWo0BA-24">
