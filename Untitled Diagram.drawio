@@ -1,11 +1,11 @@
-<mxfile host="app.diagrams.net" modified="2022-04-30T15:39:34.183Z" agent="5.0 (X11)" etag="vAzkPvMqkqfeVDDRUC_i" version="17.5.0" type="github">
+<mxfile host="app.diagrams.net" modified="2022-05-01T15:40:04.568Z" agent="5.0 (X11)" etag="XG98aH7PwkLGp_eE2m71" version="17.5.0" type="github">
   <diagram id="C5RBs43oDa-KdzZeNtuy" name="Page-1">
-    <mxGraphModel dx="1501" dy="793" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="1494" dy="793" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="WIyWlLk6GJQsqaUBKTNV-0" />
         <mxCell id="WIyWlLk6GJQsqaUBKTNV-1" parent="WIyWlLk6GJQsqaUBKTNV-0" />
         <mxCell id="futbrR1-YWrO3oFF-76m-0" value="ServerConfigHandler" style="swimlane;fontStyle=2;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeLast=0;collapsible=1;marginBottom=0;rounded=0;shadow=0;strokeWidth=1;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
-          <mxGeometry x="-430" y="1105" width="390" height="375" as="geometry">
+          <mxGeometry x="-430" y="1105" width="390" height="398" as="geometry">
             <mxRectangle x="230" y="140" width="160" height="26" as="alternateBounds" />
           </mxGeometry>
         </mxCell>
@@ -30,26 +30,29 @@
         <mxCell id="16yLQQdebjXsxoNWo0BA-4" value="addInServerAutoBanWhitelist(ctx, user:discord.User): discord.Message" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" parent="futbrR1-YWrO3oFF-76m-0" vertex="1">
           <mxGeometry y="164" width="390" height="26" as="geometry" />
         </mxCell>
-        <mxCell id="16yLQQdebjXsxoNWo0BA-0" value="findInServerPolder(ctx, message: discord.Message): discord.Message" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" parent="futbrR1-YWrO3oFF-76m-0" vertex="1">
+        <mxCell id="dx3bUJaOEJ7-RdNEmy3w-0" value="removeInServerAutoBanWhitelist(ctx, user:discord.User): discord.Message" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="futbrR1-YWrO3oFF-76m-0">
           <mxGeometry y="190" width="390" height="26" as="geometry" />
         </mxCell>
-        <mxCell id="16yLQQdebjXsxoNWo0BA-5" value="addInServerPolder(ctx, message:discord.Message)" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" parent="futbrR1-YWrO3oFF-76m-0" vertex="1">
+        <mxCell id="16yLQQdebjXsxoNWo0BA-0" value="findInServerPolder(ctx, message: discord.Message): discord.Message" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" parent="futbrR1-YWrO3oFF-76m-0" vertex="1">
           <mxGeometry y="216" width="390" height="26" as="geometry" />
         </mxCell>
-        <mxCell id="16yLQQdebjXsxoNWo0BA-45" value="setBackupServer(ctx, server:discord.Guild)" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" parent="futbrR1-YWrO3oFF-76m-0" vertex="1">
+        <mxCell id="16yLQQdebjXsxoNWo0BA-5" value="addInServerPolder(ctx, message:discord.Message)" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" parent="futbrR1-YWrO3oFF-76m-0" vertex="1">
           <mxGeometry y="242" width="390" height="26" as="geometry" />
         </mxCell>
-        <mxCell id="16yLQQdebjXsxoNWo0BA-58" value="getBackupServer(ctx)" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" parent="futbrR1-YWrO3oFF-76m-0" vertex="1">
+        <mxCell id="16yLQQdebjXsxoNWo0BA-45" value="setBackupServer(ctx, server:discord.Guild)" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" parent="futbrR1-YWrO3oFF-76m-0" vertex="1">
           <mxGeometry y="268" width="390" height="26" as="geometry" />
         </mxCell>
-        <mxCell id="JF6vles-xWb7g5KUlG0W-0" value="_create_server_config_folder(ctx)" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="futbrR1-YWrO3oFF-76m-0">
+        <mxCell id="16yLQQdebjXsxoNWo0BA-58" value="getBackupServer(ctx)" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" parent="futbrR1-YWrO3oFF-76m-0" vertex="1">
           <mxGeometry y="294" width="390" height="26" as="geometry" />
         </mxCell>
-        <mxCell id="JF6vles-xWb7g5KUlG0W-1" value="_server_folder_exists(self, ctx): boolean" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="futbrR1-YWrO3oFF-76m-0">
+        <mxCell id="JF6vles-xWb7g5KUlG0W-0" value="_create_server_config_folder(ctx)" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" parent="futbrR1-YWrO3oFF-76m-0" vertex="1">
           <mxGeometry y="320" width="390" height="26" as="geometry" />
         </mxCell>
-        <mxCell id="JF6vles-xWb7g5KUlG0W-2" value="_check_folder(ctx)" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="futbrR1-YWrO3oFF-76m-0">
+        <mxCell id="JF6vles-xWb7g5KUlG0W-1" value="_server_folder_exists(self, ctx): boolean" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" parent="futbrR1-YWrO3oFF-76m-0" vertex="1">
           <mxGeometry y="346" width="390" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="JF6vles-xWb7g5KUlG0W-2" value="_check_folder(ctx)" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" parent="futbrR1-YWrO3oFF-76m-0" vertex="1">
+          <mxGeometry y="372" width="390" height="26" as="geometry" />
         </mxCell>
         <mxCell id="futbrR1-YWrO3oFF-76m-6" value="" style="endArrow=none;startArrow=diamondThin;endFill=0;startFill=1;html=1;verticalAlign=bottom;labelBackgroundColor=none;strokeWidth=1;startSize=8;endSize=8;rounded=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" parent="WIyWlLk6GJQsqaUBKTNV-1" source="futbrR1-YWrO3oFF-76m-17" target="futbrR1-YWrO3oFF-76m-0" edge="1">
           <mxGeometry width="160" relative="1" as="geometry">
