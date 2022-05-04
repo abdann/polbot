@@ -22,6 +22,7 @@ class ReactionHandler(commands.Cog, name='ReactionHandler'):
         """Command to add a reaction triggerword. Requires a trigger phrase and a valid reaction present on the server"""
         
         # Some checking code to make sure that the info hasn't been added already
+        
         if triggerphrase in self.bot.reaction_triggers.keys():
             await ctx.send(f'Trigger phrase {triggerphrase} already bound to an reaction!')
             return
