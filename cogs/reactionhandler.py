@@ -2,7 +2,6 @@ import discord
 import emojis
 from discord.ext import commands
 import cogs.permissionshandler
-import json
 import asyncio
 
 
@@ -11,9 +10,9 @@ class ReactionHandler(commands.Cog, name='ReactionHandler'):
     def __init__(self, bot):
         self.bot = bot
         # IDK if this line is correct
-        with open("reaction_triggers.json") as f:
-            reaction_triggers = json.load(f)
-        self.bot.reaction_triggers = reaction_triggers
+        # with open("reaction_triggers.json") as f:
+        #     reaction_triggers = json.load(f)
+        # self.bot.reaction_triggers = reaction_triggers
     
     #Decorators indicate that it is a command and you must have at least a role to use
     @commands.command(name="addcustomemojireactiontrigger", aliases=['addcustomrt'])
@@ -22,8 +21,8 @@ class ReactionHandler(commands.Cog, name='ReactionHandler'):
         """Command to add a reaction triggerword. Requires a trigger phrase and a valid reaction present on the server"""
         
         # Some checking code to make sure that the info hasn't been added already
-        
-        if triggerphrase in self.bot.reaction_triggers.keys():
+        reaction_triggers = self.bot.servers.get_server_reaction_triggers(ctx.guild)
+        if triggerphrase in reaction_triggers.keys():
             await ctx.send(f'Trigger phrase {triggerphrase} already bound to an reaction!')
             return
         
@@ -32,8 +31,8 @@ class ReactionHandler(commands.Cog, name='ReactionHandler'):
             await ctx.send('Reaction not found! Please use the name of the reaction without colons (ie: trollface)')
             return
         else:
-            self.bot.reaction_triggers.update({triggerphrase.replace(" ", ""): reaction_found.name})
-            self.save_reaction_triggers()
+            reaction_triggers.update({triggerphrase.replace(" ", ""): reaction_found.name})
+            self.bot.servers.update_server_reaction_triggers(ctx.guild, reaction_triggers)
             await ctx.send('Reaction trigger added!')
             return
     
@@ -42,7 +41,8 @@ class ReactionHandler(commands.Cog, name='ReactionHandler'):
     async def add_default_reaction_trigger(self, ctx, triggerphrase, reaction):
         """Command to add a default emoji to a reaction trigger. Requires a trigger phrase and the emoji"""
         # Some checking code to make sure that the info hasn't been added already
-        if triggerphrase in self.bot.reaction_triggers.keys():
+        reaction_triggers = self.bot.servers.get_server_reaction_triggers(ctx.guild)
+        if triggerphrase in reaction_triggers.keys():
             await ctx.send(f'Trigger phrase {triggerphrase} already bound to an reaction!')
             return
         
@@ -51,8 +51,8 @@ class ReactionHandler(commands.Cog, name='ReactionHandler'):
             await ctx.reply(f'{reaction} is not a default emoji!')
             return
         
-        self.bot.reaction_triggers.update({triggerphrase.replace(" ", ""): emoji[1]})
-        self.save_reaction_triggers()
+        reaction_triggers.update({triggerphrase.replace(" ", ""): emoji[1]})
+        self.bot.servers.update_server_reaction_triggers(ctx.guild, reaction_triggers)
         await ctx.send('Reaction trigger added!')
         return
 
@@ -62,15 +62,16 @@ class ReactionHandler(commands.Cog, name='ReactionHandler'):
     async def remove_custom_reaction_trigger(self, ctx, triggerphrase, reaction: discord.Emoji):
         """Command to remove an automatic reaction setting. Requires the trigger phrase and the reaction name"""
         triggerphrase = triggerphrase.replace(" ", "")
-        if not triggerphrase in self.bot.reaction_triggers.keys():
+        reaction_triggers = self.bot.servers.get_server_reaction_triggers(ctx.guild)
+        if not triggerphrase in reaction_triggers.keys():
             await ctx.reply(f'Trigger phrase {triggerphrase} not found in saved triggers!')
             return
         # logic here should work as intended since the previous if statement checked as needed
-        if self.bot.reaction_triggers.get(triggerphrase) != reaction.name:
+        if reaction_triggers.get(triggerphrase) != reaction.name:
             await ctx.reply(f'Trigger phrase {triggerphrase} not currently bound to reaction {reaction}')
             return
-        self.bot.reaction_triggers.pop(triggerphrase)
-        self.save_reaction_triggers()
+        reaction_triggers.pop(triggerphrase)
+        self.bot.servers.update_server_reaction_triggers(ctx.guild, reaction_triggers)
         await ctx.reply('Reaction trigger removed!')
         return
 
@@ -79,16 +80,18 @@ class ReactionHandler(commands.Cog, name='ReactionHandler'):
     async def remove_default_reaction_trigger(self, ctx, triggerphrase, reaction):
         reaction = self.is_default_emoji(reaction)[1]
         triggerphrase = triggerphrase.replace(" ", "")
+        reaction_triggers = self.bot.servers.get_server_reaction_triggers(ctx.guild)
+
         """Command to remove an automatic reaction setting. Requires the trigger phrase and the reaction name"""
-        if not triggerphrase in self.bot.reaction_triggers.keys():
+        if not triggerphrase in reaction_triggers.keys():
             await ctx.reply(f'Trigger phrase {triggerphrase} not found in saved triggers!')
             return
         # logic here should work as intended since the previous if statement checked as needed
-        if self.bot.reaction_triggers.get(triggerphrase) != reaction:
+        if reaction_triggers.get(triggerphrase) != reaction:
             await ctx.reply(f'Trigger phrase {triggerphrase} not currently bound to reaction {reaction}')
             return
-        self.bot.reaction_triggers.pop(triggerphrase)
-        self.save_reaction_triggers()
+        reaction_triggers.pop(triggerphrase)
+        self.bot.servers.update_server_reaction_triggers(ctx.guild, reaction_triggers)
         await ctx.reply('Reaction trigger removed!')
         return
 
@@ -96,29 +99,33 @@ class ReactionHandler(commands.Cog, name='ReactionHandler'):
     @commands.check(cogs.permissionshandler.PermissionsHandler.trial_moderator_check)
     async def list_reaction_triggers(self, ctx):
         """Lists all registered trigger phrases and the corresponding reaction name"""
-        if len(self.bot.reaction_triggers) == 0:
+        reaction_triggers = self.bot.servers.get_server_reaction_triggers(ctx.guild)
+        if len(reaction_triggers) == 0:
             await ctx.reply('No reaction triggers are currently set')
             return
-        await ctx.reply('\n'.join([f'{key}: {value}' for key, value in self.bot.reaction_triggers.items()]))
+        await ctx.reply('\n'.join([f'{key}: {value}' for key, value in reaction_triggers.items()]))
 
-    def save_reaction_triggers(self):
-        """Updates the reaction trigger file with the curent state."""
-        with open('reaction_triggers.json', 'w', encoding='utf-8') as f:
-            json.dump(self.bot.reaction_triggers, f, ensure_ascii=False, indent=4)
+    # def save_reaction_triggers(self):
+    #     """Updates the reaction trigger file with the curent state."""
+    #     with open('reaction_triggers.json', 'w', encoding='utf-8') as f:
+    #         json.dump(self.bot.reaction_triggers, f, ensure_ascii=False, indent=4)
 
     @commands.Cog.listener()
     async def on_message(self, message):
         if message.author.id == self.bot.user.id:
             return
         react_emojis = self.string_search(message)
-        if len(react_emojis) != 0:
-            coros = [self.coro_react(message, react_emoji) for react_emoji in react_emojis]
-            await asyncio.gather(*coros)
+        await self.listen_reactions(message, react_emojis)
 
         # :christmas_troll: poor chaotic :amogus:
         if message.author.id == 731659389550985277:
             sussy = discord.utils.get(message.guild.emojis, name="sus")
             await message.add_reaction(sussy)
+
+    async def listen_reactions(self, message, react_emojis):
+        if len(react_emojis) != 0:
+            coros = [self.coro_react(message, react_emoji) for react_emoji in react_emojis]
+            await asyncio.gather(*coros)
     
     async def coro_react(self, message, react_emoji):
         await message.add_reaction(react_emoji)
@@ -127,8 +134,9 @@ class ReactionHandler(commands.Cog, name='ReactionHandler'):
         reactions=[]
         # First combine message into single string with no spaces and lowercase
         content = message.content.replace(" ", "").casefold()
-        # now append any positive hits (THIS IS BLOCKING CODE)
-        for triggerphrase, reaction in self.bot.reaction_triggers.items():
+        # now append any positive hits (THIS IS BLOCKING CODE
+        reaction_triggers = self.bot.servers.get_server_reaction_triggers(message.guild)
+        for triggerphrase, reaction in reaction_triggers.items():
             if content.find(triggerphrase) != -1:
                 react = discord.utils.get(message.guild.emojis, name=reaction)
                 if react is not None:

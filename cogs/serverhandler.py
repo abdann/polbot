@@ -15,81 +15,103 @@ class ServerConfigHandler:
         # IDK if this line is correct
         self.servers = pathlib.Path("servers")
 
-    def get_server_parameters(self, ctx):
+    def get_server_parameters(self, guild):
         """Retrieves the current server parameter list"""
-        self._check_folder(ctx)
-        with open((self.servers / str(ctx.guild.id) / "parameters.json").resolve(), 'r') as f:
+        self._check_folder(guild)
+        with open((self.servers / str(guild.id) / "parameters.json").resolve(), 'r') as f:
             parameters = json.load(f)
         return parameters
     
-    def update_server_parameters(self, ctx, parameters:dict):
+    def update_server_parameters(self, guild, parameters:dict):
         """Updates the server parameters"""
-        self._check_folder(ctx)
-        with open((self.servers / str(ctx.guild.id) / "parameters.json").resolve(), 'w') as f:
+        self._check_folder(guild)
+        with open((self.servers / str(guild.id) / "parameters.json").resolve(), 'w') as f:
             json.dump(parameters, f)
     
-    def find_in_server_auto_ban_whitelist(self, ctx, user:discord.User):
+    def find_in_server_auto_ban_whitelist(self, guild, user:discord.User):
         """Finds the specified user in the auto-ban whitelist. Returns True if found, False otherwise."""
-        self._check_folder(ctx) 
-        with open((self.servers / str(ctx.guild.id) / "auto_ban_whitelist.json").resolve(), 'r') as f:
+        self._check_folder(guild) 
+        with open((self.servers / str(guild.id) / "auto_ban_whitelist.json").resolve(), 'r') as f:
             auto_ban_whitelist = json.load(f)
         if str(user.id) in auto_ban_whitelist.keys():
             return True
         return False
     
-    def remove_in_server_auto_ban_whitelist(self, ctx, user: discord.User):
+    def remove_in_server_auto_ban_whitelist(self, guild, user: discord.User):
         """Removes a user from the whitelist. Returns True if the user was found and removed, otherwise return False"""
-        self._check_folder(ctx)
+        self._check_folder(guild)
 
-        with open((self.servers / str(ctx.guild.id) / "auto_ban_whitelist.json").resolve(), '+') as f:
+        with open((self.servers / str(guild.id) / "auto_ban_whitelist.json").resolve(), 'r+') as f:
             auto_ban_whitelist = json.load(f)
-            if not isinstance(auto_ban_whitelist.pop(str(user.id)), None):
+        if not isinstance(auto_ban_whitelist.pop(str(user.id)), type(None)):
+            with open((self.servers / str(guild.id) / "auto_ban_whitelist.json").resolve(), 'w') as f:
                 json.dump(auto_ban_whitelist, f)
-                return True
-            return False
+            return True
+        return False
 
-    def add_in_server_auto_ban_whitelist(self, ctx, user:discord.User):
+    def add_in_server_auto_ban_whitelist(self, guild, user:discord.User):
         """Adds a user to the auto-ban whitelist. Returns True if successfully added the user to the whitelist, False if they already are in the whitelist"""
-        self._check_folder(ctx)
-        with open((self.servers / str(ctx.guild.id) / "auto_ban_whitelist.json").resolve(), '+') as f:
+        self._check_folder(guild)
+        with open((self.servers / str(guild.id) / "auto_ban_whitelist.json").resolve(), 'r+') as f:
             auto_ban_whitelist = json.load(f)
-            if str(user.id) in auto_ban_whitelist.keys():
-                return False
-            auto_ban_whitelist.update({str(user.id):user.name})
+        if str(user.id) in auto_ban_whitelist.keys():
+            return False
+        auto_ban_whitelist.update({str(user.id):user.name})
+        with open((self.servers / str(guild.id) / "auto_ban_whitelist.json").resolve(), 'w') as f:
             json.dump(auto_ban_whitelist, f)
         return True
     
-    def find_in_polder(self, ctx, discord_media_link):
+    def get_server_auto_ban_whitelist(self, guild):
+        """Returns the entire server autoban whitelist"""
+        self._check_folder(guild)
+        with open((self.servers / str(guild.id) / "auto_ban_whitelist.json").resolve(), 'r') as f:
+            return json.load(f)
+
+    def get_server_reaction_triggers(self, guild):
+        """Gets a dictionary of the emoji reactions available"""
+        self._check_folder(guild)
+        with open((self.servers / str(guild.id) /"reaction_triggers.json").resolve(), 'r') as f:
+            return json.load(f)
+    
+    def update_server_reaction_triggers(self, guild, reaction_triggers):
+        """Updates the reaction triggers dict"""
+        self._check_folder(guild)
+        with open((self.servers / str(guild.id) /"reaction_triggers.json").resolve(), 'w') as f:
+            json.dump(reaction_triggers, f)
+            
+    def find_in_polder(self, guild, discord_media_link):
         """Finds a message corresponding to a piece of media (the link) stored in the polder database. Returns the discord message ID if the associated discord link is found, False otherwise"""
-        self._check_folder(ctx)
-        with open((self.servers / str(ctx.guild.id) /"polder.json").resolve(), 'r') as f:
+        self._check_folder(guild)
+        with open((self.servers / str(guild.id) /"polder.json").resolve(), 'r') as f:
             polder = json.load(f)
             return polder.get(str(discord_media_link), False)
     
-    def add_in_polder(self, ctx, discord_media_link, message:discord.Message):
+    def add_in_polder(self, guild, discord_media_link, message:discord.Message):
         """Adds a link to a piece of media. Returns True if successful, False otherwise."""
-        self._check_folder(ctx)
-        with open((self.servers / str(ctx.guild.id) /"polder.json").resolve(), '+') as f:
+        self._check_folder(guild)
+        with open((self.servers / str(guild.id) /"polder.json").resolve(), 'r') as f:
             polder = json.load(f)
-            if str(discord_media_link) not in polder.keys():
-                polder.update({str(discord_media_link): message.id})
+        if str(discord_media_link) not in polder.keys():
+            polder.update({str(discord_media_link): message.id})
+            with open((self.servers / str(guild.id) /"polder.json").resolve(), 'w') as f:
                 json.dump(polder, f)
-                return True
-            return False
+            return True
+        return False
 
-    def remove_in_polder(self, ctx, discord_media_link):
+    def remove_in_polder(self, guild, discord_media_link):
         """Removes a saved polder entry given a discord media link. Returns True if the link was found and removed, False otherwise"""
-        self._check_folder(ctx)
-        with open((self.servers / str(ctx.guild.id) /"polder.json").resolve(), '+') as f:
+        self._check_folder(guild)
+        with open((self.servers / str(guild.id) /"polder.json").resolve(), 'r') as f:
             polder = json.load(f)
             if polder.pop(str(discord_media_link), False):
-                json.dump(polder, f)
+                with open((self.servers / str(guild.id) /"polder.json").resolve(), 'w') as f:
+                    json.dump(polder, f)
                 return True
             return False
 
-    def _create_server_config_folder(self, ctx):
+    def _create_server_config_folder(self, guild):
         """Makes a server config folder and creates the default parameters"""
-        server_folder = self.servers / str(ctx.guild.id)
+        server_folder = self.servers / str(guild.id)
         server_folder.mkdir()
         with open((server_folder / "parameters.json").resolve(), 'x') as f:
             json.dump(self.default_parameters, f)
@@ -100,11 +122,11 @@ class ServerConfigHandler:
         with open((server_folder / "polder.json").resolve(), 'x') as f:
             json.dump(dict(), f)
 
-    def _check_folder(self, ctx):
+    def _check_folder(self, guild):
         """Checks and initializes folder if needed"""
-        if not self._server_folder_exists(ctx):
-            self._create_server_config_folder(ctx)
+        if not self._server_folder_exists(guild):
+            self._create_server_config_folder(guild)
 
-    def _server_folder_exists(self, ctx):
+    def _server_folder_exists(self, guild):
         """Checks if a server folder is already stored and returns true or false"""
-        return True if ((self.servers / str(ctx.guild.id)).exists()) else False
+        return True if ((self.servers / str(guild.id)).exists()) else False
