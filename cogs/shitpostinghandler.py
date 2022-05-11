@@ -58,16 +58,15 @@ class ShitpostingHandler(commands.Cog, name='Shitposting'):
     async def remove_polder_post(self, ctx):
         """When this command is run in a reply to an image posted by PolBot, it removes the image from polbot's available images to post."""
         posted_message = await ctx.channel.fetch_message(ctx.message.reference.message_id)
-        if posted_message.author.id != self.bot.id:
+        if posted_message.author.id != self.bot.user.id:
             await ctx.reply("The message you replied to is not something *I* posted, you twat.")
             return
-        
         # IMPORTANT: Assumes that PolBot can only post 1 image per image shitpost
-        discord_media_link = posted_message.embeds[0].url
+        discord_media_link = posted_message.attachments.pop(0).url
         if self.bot.servers.remove_in_polder(ctx.guild, discord_media_link):
             await ctx.reply("I won't post *that* ever again ;)")
             return
-        await ctx.reply("I don't remember having *that* saved (I am having a stroke, please call my master)")
+        await ctx.reply("I don't remember having *that* saved (I may be having a stroke, please call my master)")
 
 
     async def _add_polder_post(self, message:discord.Message, params):

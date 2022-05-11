@@ -9,7 +9,7 @@ bot_owner_role_name = "PolBot's Dad"
 owner_id = "250636361223241728" #This is abdann's discord ID
 
 
-class PermissionsHandler(commands.Cog, name='PermissionsHandler'):
+class PermissionsHandler(commands.Cog, name='Permissions'):
     """A class to handle all command permissions of the bot. Note that a linear role hierachy is presumed, from trial moderator up to bot owner, therfore allowing those higher in the hierarchy to execute commands that require having lower roles"""
     def __init__(self, bot):
         self.bot = bot

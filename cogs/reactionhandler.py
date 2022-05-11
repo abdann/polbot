@@ -5,7 +5,7 @@ import cogs.permissionshandler
 import asyncio
 
 
-class ReactionHandler(commands.Cog, name='ReactionHandler'):
+class ReactionHandler(commands.Cog, name='Reaction'):
     """A class to handle all reaction functions of the bot as well as corresponding commands"""
     def __init__(self, bot):
         self.bot = bot

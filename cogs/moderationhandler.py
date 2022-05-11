@@ -3,7 +3,7 @@ import cogs.permissionshandler
 from discord.ext import commands
 import datetime
 
-class ModerationHandler(commands.Cog, name='ModerationHandler'):
+class ModerationHandler(commands.Cog, name='Moderation'):
     """A class to handle all moderation functions of the bot as well as corresponding commands"""
     def __init__(self, bot):
         self.bot = bot
