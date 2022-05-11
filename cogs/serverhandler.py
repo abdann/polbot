@@ -1,6 +1,7 @@
 import discord
 import json
 import pathlib
+from random import sample
 
 
 
@@ -80,12 +81,19 @@ class ServerConfigHandler:
             json.dump(reaction_triggers, f)
             
     def find_in_polder(self, guild, discord_media_link):
-        """Finds a message corresponding to a piece of media (the link) stored in the polder database. Returns the discord message ID if the associated discord link is found, False otherwise"""
+        """Finds a message ID corresponding to a piece of media (the link) stored in the polder database. Returns the discord message ID if the associated discord link is found, False otherwise"""
         self._check_folder(guild)
         with open((self.servers / str(guild.id) /"polder.json").resolve(), 'r') as f:
             polder = json.load(f)
             return polder.get(str(discord_media_link), False)
     
+    def get_random_polder(self, guild):
+        """Gets a random media link from polder"""
+        self._check_folder(guild)
+        with open((self.servers / str(guild.id) /"polder.json").resolve(), 'r') as f:
+            polder = json.load(f)
+            return sample(polder.keys(), 1)[0]
+
     def add_in_polder(self, guild, discord_media_link, message:discord.Message):
         """Adds a link to a piece of media. Returns True if successful, False otherwise."""
         self._check_folder(guild)

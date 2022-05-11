@@ -5,6 +5,7 @@ import cogs.permissionshandler
 import cogs.reactionhandler
 import cogs.commanderrorhandler
 import cogs.moderationhandler
+import cogs.shitpostinghandler
 import os
 from pretty_help import PrettyHelp
 
@@ -15,8 +16,7 @@ class PolBot(commands.Bot):
 def main():
     from dotenv import load_dotenv
     load_dotenv()
-    TOKEN = os.getenv('DISCORD_TOKEN_LIVE')
-    GUILD = os.getenv('DISCORD_GUILD')
+    TOKEN = os.getenv('DISCORD_TOKEN_TEST')
     intents = discord.Intents.default()
     intents.members = True
     bot = PolBot(
@@ -29,6 +29,7 @@ def main():
     bot.add_cog(cogs.reactionhandler.ReactionHandler(bot))
     bot.add_cog(cogs.commanderrorhandler.CommandErrHandler(bot))
     bot.add_cog(cogs.moderationhandler.ModerationHandler(bot))
+    bot.add_cog(cogs.shitpostinghandler.ShitpostingHandler(bot))
     #Add cogs to bot before this line
     bot.run(TOKEN)
 
