@@ -16,7 +16,7 @@ class PolBot(commands.Bot):
 def main():
     from dotenv import load_dotenv
     load_dotenv()
-    TOKEN = os.getenv('DISCORD_TOKEN_TEST')
+    TOKEN = os.getenv('DISCORD_TOKEN_LIVE')
     intents = discord.Intents.default()
     intents.members = True
     bot = PolBot(
