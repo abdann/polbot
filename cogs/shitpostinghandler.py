@@ -59,22 +59,43 @@ class ShitpostingHandler(commands.Cog, name='Shitposting'):
     async def remove_polder_post(self, ctx):
         """[Moderator command] When this command is run in a reply to a polder post posted by PolBot, it removes the polder post from PolBot's memory."""
         posted_message = await ctx.channel.fetch_message(ctx.message.reference.message_id)
-        if posted_message.author.id != self.bot.user.id:
-            await ctx.reply("The message you replied to is not something *I* posted, you twat.")
-            return
-        if len(posted_message.attachments) != 0: #For image posts from polder
-            # IMPORTANT: Assumes that PolBot can only post 1 image per image shitpost
-            discord_media_link = posted_message.attachments.pop(0).url
-            if self.bot.servers.remove_in_polder(ctx.guild, discord_media_link):
-                await ctx.reply("I won't post *that* ever again ;)")
+        params = self.bot.servers.get_server_parameters(ctx.guild)
+        if ctx.channel.id == params.get("polder_channel_id"):
+        # if posted_message.author.id != self.bot.user.id:
+        #     await ctx.reply("The message you replied to is not something *I* posted, you twat.")
+        #     return
+            if len(posted_message.attachments) != 0: #For image posts from polder
+                # IMPORTANT: Assumes that PolBot can only post 1 image per image shitpost
+                discord_media_link = posted_message.attachments.pop(0).url
+                if self.bot.servers.remove_in_polder(ctx.guild, discord_media_link):
+                    # await ctx.reply("I won't post *that* ever again ;)")
+                    await ctx.reply("I didn't see nuffin' ;)")
+                    return
+                await ctx.reply("I don't remember having *that* saved (I may be having a stroke, please call my master)")
+            else: # For text posts from polder
+                if self.bot.servers.remove_in_polder(ctx.guild, posted_message.content):
+                    await ctx.reply("I didn't see nuffin' ;)")
+                    return
+                await ctx.reply("I don't remember having *that* saved (I may be having a stroke, please call my master)")
+        else: #Assumes that we are anywhere else other than polder
+            if posted_message.author.id != self.bot.user.id:
+                await ctx.reply("The message you replied to is not something *I* posted, you twat.")
                 return
-            await ctx.reply("I don't remember having *that* saved (I may be having a stroke, please call my master)")
-        else: # For text posts from polder
-            content = posted_message.content
-            if self.bot.servers.remove_in_polder(ctx.guild, content):
-                await ctx.reply("I won't post *that* ever again ;)")
-                return
-            await ctx.reply("I don't remember having *that* saved (I may be having a stroke, please call my master)")
+            else: # Implies that PolBot posted posted_message
+                if len(posted_message.attachments) != 0: #For image posts from polder
+                    # IMPORTANT: Assumes that PolBot can only post 1 image per image shitpost
+                    discord_media_link = posted_message.attachments.pop(0).url
+                    if self.bot.servers.remove_in_polder(ctx.guild, discord_media_link):
+                        await ctx.reply("I won't post *that* ever again ;)")
+                        return
+                    await ctx.reply("I don't remember having *that* saved (I may be having a stroke, please call my master)")
+                else: # For text posts from polder
+                    if self.bot.servers.remove_in_polder(ctx.guild, posted_message.content):
+                        await ctx.reply("I won't post *that* ever again ;)")
+                        return
+                    await ctx.reply("I don't remember having *that* saved (I may be having a stroke, please call my master)")
+
+
 
     async def _add_polder_post(self, message:discord.Message, params):
         """Adds an image link OR message text to PolBot's repetoire of things he can post from polder."""
