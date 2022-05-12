@@ -18,7 +18,7 @@ class ReactionHandler(commands.Cog, name='Reaction'):
     @commands.command(name="addcustomemojireactiontrigger", aliases=['addcustomrt'])
     @commands.check(cogs.permissionshandler.PermissionsHandler.executive_moderator_check)
     async def add_custom_reaction_trigger(self, ctx, triggerphrase, reaction: discord.Emoji):
-        """Command to add a reaction triggerword. Requires a trigger phrase and a valid reaction present on the server"""
+        """[Executive Moderator command] Command to add a reaction triggerword. Requires a trigger phrase and a valid reaction present on the server"""
         
         # Some checking code to make sure that the info hasn't been added already
         reaction_triggers = self.bot.servers.get_server_reaction_triggers(ctx.guild)
@@ -39,7 +39,7 @@ class ReactionHandler(commands.Cog, name='Reaction'):
     @commands.command(name="adddefaultemojireactiontrigger", aliases=['adddefaultrt'])
     @commands.check(cogs.permissionshandler.PermissionsHandler.executive_moderator_check)
     async def add_default_reaction_trigger(self, ctx, triggerphrase, reaction):
-        """Command to add a default emoji to a reaction trigger. Requires a trigger phrase and the emoji"""
+        """[Executive Moderator command] Command to add a default emoji to a reaction trigger. Requires a trigger phrase and the emoji"""
         # Some checking code to make sure that the info hasn't been added already
         reaction_triggers = self.bot.servers.get_server_reaction_triggers(ctx.guild)
         if triggerphrase in reaction_triggers.keys():
@@ -60,7 +60,7 @@ class ReactionHandler(commands.Cog, name='Reaction'):
     @commands.command(name="removecustomemojireactiontrigger", aliases=['rmcustomrt'])
     @commands.check(cogs.permissionshandler.PermissionsHandler.executive_moderator_check)
     async def remove_custom_reaction_trigger(self, ctx, triggerphrase, reaction: discord.Emoji):
-        """Command to remove an automatic reaction setting. Requires the trigger phrase and the reaction name"""
+        """[Executive Moderator command] Command to remove an automatic reaction setting. Requires the trigger phrase and the reaction name"""
         triggerphrase = triggerphrase.replace(" ", "")
         reaction_triggers = self.bot.servers.get_server_reaction_triggers(ctx.guild)
         if not triggerphrase in reaction_triggers.keys():
@@ -78,11 +78,10 @@ class ReactionHandler(commands.Cog, name='Reaction'):
     @commands.command(name="removedefaultemojireactiontrigger", aliases=['rmdefaultrt'])
     @commands.check(cogs.permissionshandler.PermissionsHandler.executive_moderator_check)
     async def remove_default_reaction_trigger(self, ctx, triggerphrase, reaction):
+        """[Executive Moderator command] Command to remove an automatic reaction setting. Requires the trigger phrase and the reaction name"""
         reaction = self.is_default_emoji(reaction)[1]
         triggerphrase = triggerphrase.replace(" ", "")
         reaction_triggers = self.bot.servers.get_server_reaction_triggers(ctx.guild)
-
-        """Command to remove an automatic reaction setting. Requires the trigger phrase and the reaction name"""
         if not triggerphrase in reaction_triggers.keys():
             await ctx.reply(f'Trigger phrase {triggerphrase} not found in saved triggers!')
             return
@@ -98,7 +97,7 @@ class ReactionHandler(commands.Cog, name='Reaction'):
     @commands.command(name="listreactiontriggers", aliases=['listrt'])
     @commands.check(cogs.permissionshandler.PermissionsHandler.trial_moderator_check)
     async def list_reaction_triggers(self, ctx):
-        """Lists all registered trigger phrases and the corresponding reaction name"""
+        """[Moderator command] Lists all registered trigger phrases and the corresponding reaction name"""
         reaction_triggers = self.bot.servers.get_server_reaction_triggers(ctx.guild)
         if len(reaction_triggers) == 0:
             await ctx.reply('No reaction triggers are currently set')
