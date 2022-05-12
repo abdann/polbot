@@ -62,14 +62,14 @@ class ShitpostingHandler(commands.Cog, name='Shitposting'):
         if posted_message.author.id != self.bot.user.id:
             await ctx.reply("The message you replied to is not something *I* posted, you twat.")
             return
-        if len(posted_message.attachments) != 0:
+        if len(posted_message.attachments) != 0: #For image posts from polder
             # IMPORTANT: Assumes that PolBot can only post 1 image per image shitpost
             discord_media_link = posted_message.attachments.pop(0).url
             if self.bot.servers.remove_in_polder(ctx.guild, discord_media_link):
                 await ctx.reply("I won't post *that* ever again ;)")
                 return
             await ctx.reply("I don't remember having *that* saved (I may be having a stroke, please call my master)")
-        else:
+        else: # For text posts from polder
             content = posted_message.content
             if self.bot.servers.remove_in_polder(ctx.guild, content):
                 await ctx.reply("I won't post *that* ever again ;)")
@@ -144,8 +144,9 @@ class ShitpostingHandler(commands.Cog, name='Shitposting'):
         """Creates a random piece of text from the 20 previous messages in chat. Filters links and mentions, and limits the output to 2000 characters (discord limit)"""
         if params.get("random_text_posts_enabled"):
             messages = [message.content async for message in message.channel.history(limit=20)] #Get list of 20 most recent message contents
-            words = ' '.join(messages).split() # Separate into list of words
-            words = re.sub(r'http\S+', '', words) #filter out links
+            words_as_string = ' '.join(messages) # Separate into list of words
+            words = re.sub(r'http\S+', '', words_as_string) #filter out links
+            words = words.split()
             shitpost = sample(words, int(random()*len(words)/2)) #Restricts the sample of words to be at most half the length of words
             shitpost = " ".join(shitpost) # combine them into a single string
             shitpost = discord.utils.escape_mentions(shitpost) #ALHAMDULILAH
