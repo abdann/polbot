@@ -107,13 +107,13 @@ class ShitpostingHandler(commands.Cog, name='Shitposting'):
         if not params.get("random_text_posts_enabled"):
             await ctx.reply("Random text posting is already disabled.")
             return
-        params.update({"random_image_posts_enabled":False})
+        params.update({"random_text_posts_enabled":False})
         self.bot.servers.update_server_parameters(ctx.guild, params)
-        await ctx.reply("Random image posting is now disabled.")
+        await ctx.reply("Random text posting is now disabled.")
 
     @commands.command(name="enablerandompolderposts", aliases=['erandompolder'])
     @commands.check(cogs.permissionshandler.PermissionsHandler.admin_check)
-    async def enable_random_image_posts(self, ctx):
+    async def enable_random_polder_posts(self, ctx):
         """Enables random polder posting. Use this if you want PolBot to post things from polder."""
         params = self.bot.servers.get_server_parameters(ctx.guild)
         if params.get("random_polder_posts_enabled"):
