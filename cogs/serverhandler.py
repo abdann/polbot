@@ -81,37 +81,37 @@ class ServerConfigHandler:
             json.dump(reaction_triggers, f)
             
     def find_in_polder(self, guild, discord_media_link):
-        """Finds a message ID corresponding to a piece of media (the link) stored in the polder database. Returns the discord message ID if the associated discord link is found, False otherwise"""
+        """Finds a message ID corresponding to a piece of content stored in the polder database. Returns the discord message ID if the associated content is found, False otherwise"""
         self._check_folder(guild)
         with open((self.servers / str(guild.id) /"polder.json").resolve(), 'r') as f:
             polder = json.load(f)
             return polder.get(str(discord_media_link), False)
     
     def get_random_polder(self, guild):
-        """Gets a random media link from polder"""
+        """Gets a random piece of content from polder"""
         self._check_folder(guild)
         with open((self.servers / str(guild.id) /"polder.json").resolve(), 'r') as f:
             polder = json.load(f)
             return sample(polder.keys(), 1)[0]
 
-    def add_in_polder(self, guild, discord_media_link, message:discord.Message):
-        """Adds a link to a piece of media. Returns True if successful, False otherwise."""
+    def add_in_polder(self, guild, content, message:discord.Message):
+        """Adds a piece of content (text or link) to saved polder. Returns True if successful, False otherwise."""
         self._check_folder(guild)
         with open((self.servers / str(guild.id) /"polder.json").resolve(), 'r') as f:
             polder = json.load(f)
-        if str(discord_media_link) not in polder.keys():
-            polder.update({str(discord_media_link): message.id})
+        if str(content) not in polder.keys():
+            polder.update({str(content): message.id})
             with open((self.servers / str(guild.id) /"polder.json").resolve(), 'w') as f:
                 json.dump(polder, f)
             return True
         return False
 
-    def remove_in_polder(self, guild, discord_media_link):
-        """Removes a saved polder entry given a discord media link. Returns True if the link was found and removed, False otherwise"""
+    def remove_in_polder(self, guild, content):
+        """Removes a saved polder entry given a piece of content (text or link). Returns True if the content was found and removed, False otherwise"""
         self._check_folder(guild)
         with open((self.servers / str(guild.id) /"polder.json").resolve(), 'r') as f:
             polder = json.load(f)
-            if polder.pop(str(discord_media_link), False):
+            if polder.pop(str(content), False):
                 with open((self.servers / str(guild.id) /"polder.json").resolve(), 'w') as f:
                     json.dump(polder, f)
                 return True
