@@ -167,7 +167,7 @@ class ModerationHandler(commands.Cog, name='Moderation'):
             if not self.bot.servers.find_in_server_auto_ban_whitelist(member.guild, member):
                 account_age = datetime.datetime.now() - member.created_at
                 if account_age.total_seconds() < datetime.timedelta(days=params["min_account_age"]).total_seconds():
-                    await member.ban(reason=f'Account age less than {params["min_account_age"]} days old')
+                    await member.ban(reason=f'Account age less than {params["min_account_age"]} days old. Please appeal to staff in the appeals server.')
                     return
     
     # def save_auto_ban_whitelist(self):
