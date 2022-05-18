@@ -15,7 +15,7 @@ class ShitpostingHandler(commands.Cog, name='Shitposting'):
             return
         if self.bot.user.mentioned_in(message):
             await message.reply("https://tenor.com/view/annoying-who-pinged-me-angry-gif-14512411")
-        params = self.bot.servers.get_server_parameters(message.guild)
+        params = await self.bot.servers.get_server_parameters(message.guild)
         if message.channel.id in params.get("shitposting_channels"):
             await self._post_listener(message, params, self._post_random_polder)
             await self._post_listener(message, params, self._post_random_text)
@@ -24,42 +24,42 @@ class ShitpostingHandler(commands.Cog, name='Shitposting'):
     @commands.command(name="setpolderhere", aliases=['setpolder'])
     @commands.check(cogs.permissionshandler.PermissionsHandler.admin_check)
     async def set_polder_here(self, ctx):
-        """[Admin command] Sets the polder channel to the current channel. All images and text posted in the polder channel will have a chance to be randomly posted in the allowed channels. This is separate from the randomly generated text posting."""
-        params = self.bot.servers.get_server_parameters(ctx.guild)
+        """[Default Admin command] Sets the polder channel to the current channel. All images and text posted in the polder channel will have a chance to be randomly posted in the allowed channels. This is separate from the randomly generated text posting."""
+        params = await self.bot.servers.get_server_parameters(ctx.guild)
         params.update({"polder_channel_id":ctx.channel.id})
-        self.bot.servers.update_server_parameters(ctx.guild, params)
+        await self.bot.servers.update_server_parameters(ctx.guild, params)
         await ctx.reply(f"Set the polder channel to #{ctx.channel.name}")
 
     @commands.command(name="enablepolder", aliases=['epolder'])
     @commands.check(cogs.permissionshandler.PermissionsHandler.admin_check)
     async def enable_polder(self, ctx):
-        """[Admin command] Enables polder image collection. Use this if you want PolBot to save text and images from polder."""
-        params = self.bot.servers.get_server_parameters(ctx.guild)
+        """[Default Admin command] Enables polder image collection. Use this if you want PolBot to save text and images from polder."""
+        params = await self.bot.servers.get_server_parameters(ctx.guild)
         if params.get("polder_enabled"):
             await ctx.reply("Polder image collection is already enabled.")
             return
         params.update({"polder_enabled":True})
-        self.bot.servers.update_server_parameters(ctx.guild, params)
+        await self.bot.servers.update_server_parameters(ctx.guild, params)
         await ctx.reply("Polder image collection is now enabled.")
 
     @commands.command(name="disablepolder", aliases=['dpolder'])
     @commands.check(cogs.permissionshandler.PermissionsHandler.admin_check)
     async def disable_polder(self, ctx):
-        """[Admin command] Disables polder content collection. Use this if you want to prevent PolBot from saving text and images from polder, for whatever reason."""
-        params = self.bot.servers.get_server_parameters(ctx.guild)
+        """[Default Admin command] Disables polder content collection. Use this if you want to prevent PolBot from saving text and images from polder, for whatever reason."""
+        params = await self.bot.servers.get_server_parameters(ctx.guild)
         if not params.get("polder_enabled"):
             await ctx.reply("Polder image collection is already disabled.")
             return
         params.update({"polder_enabled":False})
-        self.bot.servers.update_server_parameters(ctx.guild, params)
+        await self.bot.servers.update_server_parameters(ctx.guild, params)
         await ctx.reply("Polder image collection is now disabled.")
 
     @commands.command(name="removepolderpost", aliases=['rmpolderpost'])
     @commands.check(cogs.permissionshandler.PermissionsHandler.moderator_check)
     async def remove_polder_post(self, ctx):
-        """[Moderator command] When this command is run in a reply to a polder post posted by PolBot, it removes the polder post from PolBot's memory."""
+        """[Default Mod command] When this command is run in a reply to a polder post posted by PolBot, it removes the polder post from PolBot's memory."""
         posted_message = await ctx.channel.fetch_message(ctx.message.reference.message_id)
-        params = self.bot.servers.get_server_parameters(ctx.guild)
+        params = await self.bot.servers.get_server_parameters(ctx.guild)
         if ctx.channel.id == params.get("polder_channel_id"):
         # if posted_message.author.id != self.bot.user.id:
         #     await ctx.reply("The message you replied to is not something *I* posted, you twat.")
@@ -67,13 +67,13 @@ class ShitpostingHandler(commands.Cog, name='Shitposting'):
             if len(posted_message.attachments) != 0: #For image posts from polder
                 # IMPORTANT: Assumes that PolBot can only post 1 image per image shitpost
                 discord_media_link = posted_message.attachments.pop(0).url
-                if self.bot.servers.remove_in_polder(ctx.guild, discord_media_link):
+                if await self.bot.servers.remove_in_polder(ctx.guild, discord_media_link):
                     # await ctx.reply("I won't post *that* ever again ;)")
                     await ctx.reply("I didn't see nuffin' ;)")
                     return
                 await ctx.reply("I don't remember having *that* saved (I may be having a stroke, please call my master)")
             else: # For text posts from polder
-                if self.bot.servers.remove_in_polder(ctx.guild, posted_message.content):
+                if await self.bot.servers.remove_in_polder(ctx.guild, posted_message.content):
                     await ctx.reply("I didn't see nuffin' ;)")
                     return
                 await ctx.reply("I don't remember having *that* saved (I may be having a stroke, please call my master)")
@@ -85,12 +85,12 @@ class ShitpostingHandler(commands.Cog, name='Shitposting'):
                 if len(posted_message.attachments) != 0: #For image posts from polder
                     # IMPORTANT: Assumes that PolBot can only post 1 image per image shitpost
                     discord_media_link = posted_message.attachments.pop(0).url
-                    if self.bot.servers.remove_in_polder(ctx.guild, discord_media_link):
+                    if await self.bot.servers.remove_in_polder(ctx.guild, discord_media_link):
                         await ctx.reply("I won't post *that* ever again ;)")
                         return
                     await ctx.reply("I don't remember having *that* saved (I may be having a stroke, please call my master)")
                 else: # For text posts from polder
-                    if self.bot.servers.remove_in_polder(ctx.guild, posted_message.content):
+                    if await self.bot.servers.remove_in_polder(ctx.guild, posted_message.content):
                         await ctx.reply("I won't post *that* ever again ;)")
                         return
                     await ctx.reply("I don't remember having *that* saved (I may be having a stroke, please call my master)")
@@ -100,66 +100,79 @@ class ShitpostingHandler(commands.Cog, name='Shitposting'):
     async def _add_polder_post(self, message:discord.Message, params):
         """Adds an image link OR message text to PolBot's repetoire of things he can post from polder."""
         if message.channel.id == params.get("polder_channel_id") and params.get("polder_enabled"):
+            if message.content.startswith(self.bot.command_prefix): # Exit if contains command
+                return
+            if message.author.id == self.bot.user.id: # Exit if bot message
+                return
             # IMPORTANT: Assumes that PolBot can only post 1 image per image shitpost. Multiple images won't be added. Also assumes that an image is posted separately from text
-            if len(message.attachments) != 0:
+            if len(message.attachments) != 0: #The post is a message
                 image = message.attachments.pop(0)
-                self.bot.servers.add_in_polder(message.guild, image.url, message)
-            else:
-                self.bot.servers.add_in_polder(message.guild, message.content, message)
+                await self.bot.servers.add_in_polder(message.guild, image.url, message.id, message.author.id)
+            else: #The post is a text
+                await self.bot.servers.add_in_polder(message.guild, message.content, message.id, message.author.id)
     
 
     @commands.command(name="enablerandomtextposts", aliases=['erandomtext'])
     @commands.check(cogs.permissionshandler.PermissionsHandler.admin_check)
     async def enable_random_text_posts(self, ctx):
-        """[Admin command] Enables random text posting. Use this if you want polder to post randomly generated text."""
-        params = self.bot.servers.get_server_parameters(ctx.guild)
+        """[Default Admin command] Enables random text posting. Use this if you want polder to post randomly generated text."""
+        params = await self.bot.servers.get_server_parameters(ctx.guild)
         if params.get("random_text_posts_enabled"):
             await ctx.reply("Random text posting is already enabled.")
             return
         params.update({"random_text_posts_enabled":True})
-        self.bot.servers.update_server_parameters(ctx.guild, params)
+        await self.bot.servers.update_server_parameters(ctx.guild, params)
         await ctx.reply("Random text posting is now enabled.")
 
     @commands.command(name="disablerandomtextposts", aliases=['drandomtext'])
     @commands.check(cogs.permissionshandler.PermissionsHandler.admin_check)
     async def disable_random_text_posts(self, ctx):
-        """[Admin command] Disables random text posting. Use this if you don't want polder to post randomly generated text."""
-        params = self.bot.servers.get_server_parameters(ctx.guild)
+        """[Default Admin command] Disables random text posting. Use this if you don't want polder to post randomly generated text."""
+        params = await self.bot.servers.get_server_parameters(ctx.guild)
         if not params.get("random_text_posts_enabled"):
             await ctx.reply("Random text posting is already disabled.")
             return
         params.update({"random_text_posts_enabled":False})
-        self.bot.servers.update_server_parameters(ctx.guild, params)
+        await self.bot.servers.update_server_parameters(ctx.guild, params)
         await ctx.reply("Random text posting is now disabled.")
 
     @commands.command(name="enablerandompolderposts", aliases=['erandompolder'])
     @commands.check(cogs.permissionshandler.PermissionsHandler.admin_check)
     async def enable_random_polder_posts(self, ctx):
-        """[Admin command] Enables random polder posting. Use this if you want PolBot to post things from polder."""
-        params = self.bot.servers.get_server_parameters(ctx.guild)
+        """[Default Admin command] Enables random polder posting. Use this if you want PolBot to post things from polder."""
+        params = await self.bot.servers.get_server_parameters(ctx.guild)
         if params.get("random_polder_posts_enabled"):
             await ctx.reply("Random polder posting is already enabled.")
             return
         params.update({"random_polder_posts_enabled":True})
-        self.bot.servers.update_server_parameters(ctx.guild, params)
+        await self.bot.servers.update_server_parameters(ctx.guild, params)
         await ctx.reply("Random polder posting is now enabled.")
 
     @commands.command(name="disablerandompolderposts", aliases=['drandompolder'])
     @commands.check(cogs.permissionshandler.PermissionsHandler.admin_check)
     async def disable_random_polder_posts(self, ctx):
-        """[Admin command] Disables random polder posting. Use this if you want PolBot to stop posting things from polder, for whatever reason."""
-        params = self.bot.servers.get_server_parameters(ctx.guild)
+        """[Default Admin command] Disables random polder posting. Use this if you want PolBot to stop posting things from polder, for whatever reason."""
+        params = await self.bot.servers.get_server_parameters(ctx.guild)
         if not params.get("random_polder_posts_enabled"):
             await ctx.reply("Random polder posting is already disabled.")
             return
         params.update({"random_polder_posts_enabled":False})
-        self.bot.servers.update_server_parameters(ctx.guild, params)
+        await self.bot.servers.update_server_parameters(ctx.guild, params)
         await ctx.reply("Random polder posting is now disabled.")
 
     async def _post_random_polder(self, message:discord.Message, params):
         """Finds a random thing in polder and posts it."""
         if params.get("random_polder_posts_enabled"):
-            await message.channel.send(self.bot.servers.get_random_polder(message.guild))
+            polder_message_id = await self.bot.servers.get_random_polder(message.guild)
+            if polder_message_id is None:
+                return
+            polder_channel = await self.bot.fetch_channel(params.get("polder_channel_id"))
+            try:
+                polder_message = await polder_channel.fetch_message(polder_message_id)
+            except discord.errors.NotFound:
+                await self._post_random_polder(message, params) #THIS IS A RECURSIVE ACTION. THE BOT WILL ATTEMPT TO GET ANOTHER POLDER MESSAGE UNTIL SUCCESSFUL
+
+            await message.channel.send(polder_message.content)
     
     async def _post_random_text(self, message:discord.Message, params):
         """Creates a random piece of text from the 20 previous messages in chat. Filters links and mentions, and limits the output to 2000 characters (discord limit)"""
@@ -181,44 +194,44 @@ class ShitpostingHandler(commands.Cog, name='Shitposting'):
     @commands.command(name="allowshitpostinghere",aliases=['eshitposting'])
     @commands.check(cogs.permissionshandler.PermissionsHandler.admin_check)
     async def allow_shitposting_here(self, ctx):
-        """[Admin command] Enables shitposting in the current channel. When this is run, PolBot adds this to a list of allowed channels where he can shitpost."""
-        params = self.bot.servers.get_server_parameters(ctx.guild)
+        """[Default Admin command] Enables shitposting in the current channel. When this is run, PolBot adds this to a list of allowed channels where he can shitpost."""
+        params = await self.bot.servers.get_server_parameters(ctx.guild)
         if ctx.channel.id in params.get("shitposting_channels"):
             await ctx.reply("I can already shitpost here you twat")
             return
         params.get("shitposting_channels").append(ctx.channel.id)
-        self.bot.servers.update_server_parameters(ctx.guild, params)
+        await self.bot.servers.update_server_parameters(ctx.guild, params)
         await ctx.reply("I will shitpost here :^)")
 
     @commands.command(name="disallowshitpostinghere",aliases=['dshitposting'])
     @commands.check(cogs.permissionshandler.PermissionsHandler.admin_check)
     async def disallow_shitposting_here(self, ctx):
-        """[Admin command] Disables shitposting in the current channel. When this is run, PolBot removes this from a list of allowed channels where he can shitpost."""
-        params = self.bot.servers.get_server_parameters(ctx.guild)
+        """[Default Admin command] Disables shitposting in the current channel. When this is run, PolBot removes this from a list of allowed channels where he can shitpost."""
+        params = await self.bot.servers.get_server_parameters(ctx.guild)
         if not ctx.channel.id in params.get("shitposting_channels"):
             await ctx.reply("You already prevented me from shitposting here, you twat")
             return
         params.get("shitposting_channels").remove(ctx.channel.id)
-        self.bot.servers.update_server_parameters(ctx.guild, params)
+        await self.bot.servers.update_server_parameters(ctx.guild, params)
         await ctx.reply("I will not shitpost here :^(")
 
     @commands.command(name="setshitpostingprobability", aliases=['setpostprob'])
     @commands.check(cogs.permissionshandler.PermissionsHandler.admin_check)
     async def set_shitposting_probability(self, ctx, percentage):
-        """[Admin command] Sets the probability that PolBot will randomly post something. Percentage must be a decimal between 0 and 100."""
+        """[Default Admin command] Sets the probability that PolBot will randomly post something. Percentage must be a decimal between 0 and 100."""
         try:
             shitpost_probability = float(percentage)
         except ValueError:
             await ctx.reply(f"{percentage} is not a valid decimal number between 0 and 100.")
             return
-        params = self.bot.servers.get_server_parameters(ctx.guild)
+        params = await self.bot.servers.get_server_parameters(ctx.guild)
         params.update({"shitpost_probability":shitpost_probability})
-        self.bot.servers.update_server_parameters(ctx.guild, params)
+        await self.bot.servers.update_server_parameters(ctx.guild, params)
         await ctx.reply(f'Set the shitposting probability to {shitpost_probability}%')
     
     @commands.command(name="getshitpostingprobability", aliases=['postprob?'])
     @commands.check(cogs.permissionshandler.PermissionsHandler.moderator_check)
     async def get_shitposting_probability(self, ctx):
-        """[Moderator command] Gets the probability that PolBot will randomly post something."""
-        params = self.bot.servers.get_server_parameters(ctx.guild)
+        """[Default Mod command] Gets the probability that PolBot will randomly post something."""
+        params = await self.bot.servers.get_server_parameters(ctx.guild)
         await ctx.reply(f"I have a {params.get('shitpost_probability')}% chance to shitpost after a message is posted in my allowed channels")
