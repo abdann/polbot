@@ -6,7 +6,7 @@ moderator_role_name = "Moderator"
 executive_moderator_role_name = "Executive Moderator"
 admin_role_name = "Admin"
 bot_owner_role_name = "PolBot's Dad"
-owner_id = "250636361223241728" #This is abdann's discord ID
+owner_id = 250636361223241728 #This is abdann's discord ID
 
 
 class PermissionsHandler(commands.Cog, name='Permissions'):
@@ -43,4 +43,4 @@ class PermissionsHandler(commands.Cog, name='Permissions'):
     @classmethod
     def owner_check(cls, ctx):
             """Checks if a command invoker is the owner"""
-            return True if (bot_owner_role_name in [role.name for role in ctx.message.author.roles]) else False
+            return True if (ctx.author.id == owner_id) else False
