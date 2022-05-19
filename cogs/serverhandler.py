@@ -3,6 +3,8 @@ import pathlib
 import aiosqlite
 import aiofiles
 import hashlib
+
+from lockfile import Error
 import utils
 
 
@@ -115,26 +117,27 @@ class ServerConfigHandler:
         async with aiofiles.open((self.servers / str(guild.id) /"reaction_triggers.json").resolve(), 'w') as f:
             await f.write(reaction_triggers)
     
+    async def add_emoji_reaction_trigger(self, guild, trigger_phrase, emoji)
 
-    async def find_in_polder(self, guild, content, message_id=None, author_id=None):
-        """Finds the message IDs corresponding to a piece of content from a message stored in the polder database. Returns the discord message IDs and associated authors if the associated content is found, False otherwise"""
-        await self._check_folder(guild)
-        async with aiosqlite.connect((self.servers / str(guild.id) / "polder.db").resolve()) as db:
-            async with db.execute("""SELECT message_id, author_id FROM polder WHERE hash = (?)""", (hashlib.md5(content.encode()).hexdigest())) as cursor:
-                ids = await cursor.fetchall()
-        return ids
-        # with open((self.servers / str(guild.id) /"polder.json").resolve(), 'r') as f:
-        #     polder = json.load(f)
-        #     return polder.get(str(content), False)
+    # async def find_in_polder(self, guild, content, message_id=None, author_id=None):
+    #     """Finds the message IDs corresponding to a piece of content from a message stored in the polder database. Returns the discord message IDs and associated authors if the associated content is found, False otherwise"""
+    #     await self._check_folder(guild)
+    #     async with aiosqlite.connect((self.servers / str(guild.id) / "polder.db").resolve()) as db:
+    #         async with db.execute("""SELECT message_id, author_id FROM polder WHERE hash = (?)""", (hashlib.md5(content.encode()).hexdigest())) as cursor:
+    #             ids = await cursor.fetchall()
+    #     return ids
+    #     # with open((self.servers / str(guild.id) /"polder.json").resolve(), 'r') as f:
+    #     #     polder = json.load(f)
+    #     #     return polder.get(str(content), False)
     
     async def get_random_polder(self, guild):
-        """Gets a random piece of content from polder. Returns a message_id. If the database is empty, it returns None instead"""
-        await self._check_folder(guild)
-        async with aiosqlite.connect((self.servers / str(guild.id) / "polder.db").resolve()) as db:
-            async with db.execute("""SELECT message_id FROM polder ORDER BY RANDOM() LIMIT 1;""") as cursor:
+        """Gets a random piece of content from polder. Returns a string if found, else None."""
+        await self._check_db()
+        async with aiosqlite.connect((self.servers / "server_data.db").resolve()) as db:
+            async with db.execute("""SELECT content FROM polder WHERE server_id = (?) ORDER BY RANDOM() LIMIT 1""", (guild.id)) as cursor:
                 message_id = await cursor.fetchall()
         if len(message_id) != 0:
-            return message_id[0][0]
+            return message_id[0][0] # Because of list of tuples
         else:
             return None
 
@@ -142,13 +145,11 @@ class ServerConfigHandler:
         #     polder = json.load(f)
         #     return sample(polder.keys(), 1)[0]
     async def add_in_polder(self, guild, content, message_id, author_id):
-        """Adds a piece of content (text or link) to polder table. Returns True if successful, False otherwise."""
-        await self._check_folder(guild)
-        async with aiosqlite.connect((self.servers / str(guild.id) / "polder.db").resolve()) as db:
-            print(message_id, str(hashlib.md5(content.encode()).hexdigest()), author_id)
-            await db.execute("""INSERT INTO polder VALUES (?, ?, ?)""", (message_id, str(hashlib.md5(content.encode()).hexdigest()), author_id))
+        """Adds a piece of content (text or link) to polder table. """
+        await self._check_db()
+        async with aiosqlite.connect((self.servers / "server_data.db").resolve()) as db:
+            await db.execute("""INSERT INTO polder VALUES (?, ?, ?, ?)""", (guild.id, message_id, content, author_id))
             await db.commit()
-        return True
         # with open((self.servers / str(guild.id) /"polder.json").resolve(), 'r') as f:
         #     polder = json.load(f)
         # if str(content) not in polder.keys():
@@ -158,13 +159,32 @@ class ServerConfigHandler:
         #     return True
         # return False
 
-    async def remove_in_polder(self, guild, content, message_id=None, author_id=None):
+    async def remove_in_polder(self, guild, content:str=None, message_id:int=None, author_id:int=None):
         """Removes a saved polder entry given a piece of content (text or link). Returns True if the content was found and removed, False otherwise"""
-        await self._check_folder(guild)
+        await self._check_db()
+        # Case 1: remove specific content posted by anyone on that server
+        # Case 2: remove specific message via message_id
+        # Case 3: remove specific author's posts from that server
+        # Case 4: remove specific content posted by specific author on that server
+        # Case 5: remove specific 
         if content and not (message_id and author_id):
-            async with aiosqlite.connect((self.servers / str(guild.id) / "polder.db").resolve()) as db:
-                await db.execute("""DELETE FROM polder WHERE content = (?)""", (hashlib.md5(content.encode()).hexdigest()))
+            async with aiosqlite.connect((self.servers / "server_data.db").resolve()) as db:
+                await db.execute("""DELETE FROM polder WHERE (content = (?) AND server_id = (?))""", (content, guild.id))
                 await db.commit()
+        elif message_id and not (content and author_id):
+            async with aiosqlite.connect((self.servers / "server_data.db").resolve()) as db:
+                await db.execute("""DELETE FROM polder WHERE (message_id = (?))""", (message_id))
+                await db.commit()
+        elif author_id and not (content and message_id):
+            async with aiosqlite.connect((self.servers / "server_data.db").resolve()) as db:
+                await db.execute("""DELETE FROM polder WHERE (author_id = (?) AND server_id = (?))""", (author_id, guild.id))
+                await db.commit()
+        elif author_id and content and not message_id:
+            async with aiosqlite.connect((self.servers / "server_data.db").resolve()) as db:
+                await db.execute("""DELETE FROM polder WHERE (content = (?) AND author_id = (?) AND server_id = (?))""", (content, author_id, guild.id))
+                await db.commit()
+        else:
+            raise Error("Incorrect combination of polder identifying details passed.")
         ### Implement other variables later
         
 
@@ -176,28 +196,28 @@ class ServerConfigHandler:
         #         return True
         #     return False
 
-    async def _create_server_config_folder(self, guild):
-        """Makes a server config folder and creates the default parameters"""
+    # async def _create_server_config_folder(self, guild):
+    #     """Makes a server config folder and creates the default parameters"""
 
-        server_folder = self.servers / str(guild.id)
-        server_folder.mkdir()
-        async with aiofiles.open("default_parameters.json") as f:
-            default_parameters = await f.read()
-        async with aiofiles.open((server_folder / "parameters.json").resolve(), 'x') as f:
-            await f.write(default_parameters)
-        async with aiofiles.open((server_folder / "auto_ban_whitelist.json").resolve(), 'x') as f:
-            await f.write(json.dumps(dict()))
-        async with aiofiles.open((server_folder / "reaction_triggers.json").resolve(), 'x') as f:
-            await f.write(json.dumps(dict()))
-        async with aiofiles.open((server_folder / "polder.json").resolve(), 'x') as f:
-            await f.write(json.dumps(dict()))
-        # creating polder table 
-        async with aiosqlite.connect((server_folder / "polder.db").resolve()) as db:
-                await db.executescript("""CREATE TABLE IF NOT EXISTS polder (
-                    message_id INTEGER PRIMARY KEY,
-                    hash TEXT,
-                    author_id INTEGER
-                    )""")
+    #     server_folder = self.servers / str(guild.id)
+    #     server_folder.mkdir()
+    #     async with aiofiles.open("default_parameters.json") as f:
+    #         default_parameters = await f.read()
+    #     async with aiofiles.open((server_folder / "parameters.json").resolve(), 'x') as f:
+    #         await f.write(default_parameters)
+    #     async with aiofiles.open((server_folder / "auto_ban_whitelist.json").resolve(), 'x') as f:
+    #         await f.write(json.dumps(dict()))
+    #     async with aiofiles.open((server_folder / "reaction_triggers.json").resolve(), 'x') as f:
+    #         await f.write(json.dumps(dict()))
+    #     async with aiofiles.open((server_folder / "polder.json").resolve(), 'x') as f:
+    #         await f.write(json.dumps(dict()))
+    #     # creating polder table 
+    #     async with aiosqlite.connect((server_folder / "polder.db").resolve()) as db:
+    #             await db.executescript("""CREATE TABLE IF NOT EXISTS polder (
+    #                 message_id INTEGER PRIMARY KEY,
+    #                 hash TEXT,
+    #                 author_id INTEGER
+    #                 )""")
     
     async def _create_db(self):
         """"""
@@ -265,11 +285,11 @@ CREATE TABLE IF NOT EXISTS "text_triggers" (
             )
             await db.commit()
 
-    # async def _check_folder(self, guild):
-    #     """Checks and initializes folder if needed"""
-    #     if not self._server_folder_exists(guild):
-    #         await self._create_server_config_folder(guild)
+    async def _check_db(self):
+        """Checks and initializes database if needed"""
+        if not self._db_exists():
+            await self._create_db()
 
-    # def _server_folder_exists(self, guild):
-    #     """Checks if a server folder is already stored and returns true or false"""
-    #     return True if ((self.servers / str(guild.id)).exists()) else False
+    def _db_exists(self) -> bool:
+        """Checks if the database exists"""
+        return True if ((self.servers / "server_data.db").resolve().exists()) else False

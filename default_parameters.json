@@ -3,8 +3,6 @@
     "new_auto_ban_enabled": true,
     "lockdown_enabled": false,
     "polder_channel_id": null,
-    "shitposting_channels": [
-    ],
     "polder_enabled":false,
     "random_polder_posts_enabled":false,
     "random_text_posts_enabled":false,
