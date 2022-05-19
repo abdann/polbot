@@ -14,10 +14,10 @@ class ShitpostingHandler(commands.Cog, name='Shitposting'):
         if message.author.id == self.bot.user.id:
             return
         params = self.bot.servers.get_server_parameters(message.guild)
-        if self.bot.user.mentioned_in(message):
-            await self._post_listener(message, params, self._post_random_text)
-            # await message.reply("https://tenor.com/view/annoying-who-pinged-me-angry-gif-14512411")
+        # await message.reply("https://tenor.com/view/annoying-who-pinged-me-angry-gif-14512411")
         if message.channel.id in params.get("shitposting_channels"):
+            if self.bot.user.mentioned_in(message):
+                await self._post_random_text(message, params)
             await self._post_listener(message, params, self._post_random_polder)
             await self._post_listener(message, params, self._post_random_text)
         await self._add_polder_post(message, params)
