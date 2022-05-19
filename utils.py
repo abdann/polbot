@@ -1,8 +1,8 @@
 def strtobool(string:str):
     """Parses a simple string as 'True' or 'False' """
-    if string.casefold() == 'True'.casefold():
+    if string.casefold() == 'true':
          return True
-    elif string.casefold() == 'False'.casefold():
+    elif string.casefold() == 'false':
          return False
     else:
          raise ValueError
@@ -19,3 +19,7 @@ def convert_type(text_value:str, value_type:str):
         return value_types.get(value_type)(text_value)
     else:
         raise ValueError
+
+def string_type(value):
+    """Converts the object to a string respresentation"""
+    return str(value).casefold()

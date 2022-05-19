@@ -24,11 +24,12 @@ class ServerConfigHandler:
     #     parameters = json.loads(parameters)
     #     return parameters
 
+        # Would use aiofiles, but can't make __init__ an async method
         with open("default_parameters.json", "r") as f:
             self.default_parameters = json.load(f)
 
     async def get_server_parameters(self, guild, *parameters):
-        """Fetches the server parameters specified in :parameters: for the server object :guild:. Returns a dictionary of type "parameter" : value, where value is the corresponding parameter value"""
+        """Fetches the server parameters specified in :parameters: for the server :guild:. Returns a dictionary of type "parameter" : value, where value is the corresponding parameter value"""
         params_to_fetch = [parameter for parameter in parameters if parameter in self.default_parameters.keys()]
         selection = f"SELECT parameter, type, value FROM server_parameters INNER JOIN parameters ON parameters.parameter = server_parameters.parameter_name WHERE (server_id = {guild.id} AND parameter IN {tuple(params_to_fetch)})"
         params = dict()
@@ -38,14 +39,22 @@ class ServerConfigHandler:
                 async for row in cursor:
                     params.update({row[0] : utils.convert_type(row[2], row[1])})
         return params
+    
+    async def update_server_parameters(self, guild, **parameters):
+        """Updates the server parameters specified in :parameters: for the server :guild:. values of parameters can be natural objects."""
 
-
-    async def update_server_parameters(self, guild, parameters:dict):
-        """Updates the server parameters"""
-        await self._check_folder(guild)
-        parameters = json.dumps(parameters)
-        async with aiofiles.open((self.servers / str(guild.id) / "parameters.json").resolve(), 'w') as f:
-            await f.write(parameters)
+        params_to_update = [(parameter, utils.string_type(value), guild.id) for parameter, value in parameters if parameter in self.default_parameters.keys()]
+        # ASSUMPTION: This assumes that the records already exist. Enforce this on server_load by running an async method called _check_server
+        async with aiosqlite.connect((self.servers / "server_data.db").resolve()) as db:
+            db.executemany("""UPDATE server_parameters SET parameter_name = (?), value = (?) WHERE (server_id = (?))""", params_to_update)
+            db.commit()
+        
+    # async def update_server_parameters(self, guild, parameters:dict):
+    #     """Updates the server parameters"""
+    #     await self._check_folder(guild)
+    #     parameters = json.dumps(parameters)
+    #     async with aiofiles.open((self.servers / str(guild.id) / "parameters.json").resolve(), 'w') as f:
+    #         await f.write(parameters)
 
     async def find_in_server_auto_ban_whitelist(self, guild, user):
         """Finds the specified user in the auto-ban whitelist. Returns True if found, False otherwise."""
