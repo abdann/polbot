@@ -14,6 +14,8 @@ class ModerationHandler(commands.Cog, name='Moderation'):
         # with open("auto_ban_whitelist.json") as f:
         #     auto_ban_whitelist = json.load(f)
         # self.bot.auto_ban_whitelist = auto_ban_whitelist
+        self.ban_embed = discord.Embed(description="""We automatically ban new accounts because of frequent raids. If you believe this to be a mistake, please appeal to the staff in our appeals server. Here is the invite: https://discord.gg/7bST6Ha73X""", 
+        title="""You have been automatically banned from Political Compass Memes because your account was younger than the minimum account age.""")
 
     @commands.command(name="stoppolbot", aliases=['stop'])
     @commands.check(cogs.permissionshandler.PermissionsHandler.admin_check)
@@ -167,6 +169,8 @@ class ModerationHandler(commands.Cog, name='Moderation'):
             if not self.bot.servers.find_in_server_auto_ban_whitelist(member.guild, member):
                 account_age = datetime.datetime.now() - member.created_at
                 if account_age.total_seconds() < datetime.timedelta(days=params["min_account_age"]).total_seconds():
+                    dm = await member.create_dm()
+                    await dm.send(embed=self.ban_embed)
                     await member.ban(reason=f'Account age less than {params["min_account_age"]} days old. Please appeal to staff in the appeals server.')
                     return
     
