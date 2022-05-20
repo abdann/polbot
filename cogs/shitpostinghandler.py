@@ -100,13 +100,14 @@ class ShitpostingHandler(commands.Cog, name='Shitposting'):
 
     async def _add_polder_post(self, message:discord.Message, params):
         """Adds an image link OR message text to PolBot's repetoire of things he can post from polder."""
-        if (not (message.content.startswith(self.bot.command_prefix)) and (message.channel.id == params.get("polder_channel_id")) and (params.get("polder_enabled"))):
+        if (message.channel.id == params.get("polder_channel_id")) and (params.get("polder_enabled")):
+            if (not (message.content.startswith(self.bot.command_prefix))):
             # IMPORTANT: Assumes that PolBot can only post 1 image per image shitpost. Multiple images won't be added. Also assumes that an image is posted separately from text
-            if len(message.attachments) != 0:
-                image = message.attachments.pop(0)
-                self.bot.servers.add_in_polder(message.guild, image.url, message)
-            else:
-                self.bot.servers.add_in_polder(message.guild, message.content, message)
+                if len(message.attachments) != 0:
+                    image = message.attachments.pop(0)
+                    self.bot.servers.add_in_polder(message.guild, image.url, message)
+                else:
+                    self.bot.servers.add_in_polder(message.guild, message.content, message)
     
 
     @commands.command(name="enablerandomtextposts", aliases=['erandomtext'])
