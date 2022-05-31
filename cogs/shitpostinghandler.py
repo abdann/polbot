@@ -1,14 +1,17 @@
+from string import punctuation
 import discord
 import cogs.permissionshandler
 from discord.ext import commands
 from random import random, sample
 import re
 
+punctuation = [".", "?", "!"]
+mute_pings = discord.AllowedMentions(everyone=False, users=False, roles=False, replied_user=False)
+
 class ShitpostingHandler(commands.Cog, name='Shitposting'):
     """Handles all shitposting commands and features of the bot"""
     def __init__(self, bot):
         self.bot = bot
-
     @commands.Cog.listener()
     async def on_message(self, message):
         if message.author.id == self.bot.user.id:
@@ -172,8 +175,11 @@ class ShitpostingHandler(commands.Cog, name='Shitposting'):
             words = words.split()
             shitpost = sample(words, int(random()*len(words)/2)) #Restricts the sample of words to be at most half the length of words
             shitpost = " ".join(shitpost) # combine them into a single string
-            shitpost = discord.utils.escape_mentions(shitpost) #ALHAMDULILAH
-            await message.channel.send(shitpost[:2000]) #limits to 2000 characters (discord limit)
+            shitpost = self._strip_trailing_by_punc(shitpost)
+            if len(shitpost) == 0:
+                shitpost = "@everyone" #easter egg lol
+            # shitpost = discord.utils.escape_mentions(shitpost) #ALHAMDULILAH
+            await message.channel.send(shitpost[:2000], allowed_mentions=mute_pings) #limits to 2000 characters (discord limit)
     
     async def _post_listener(self, message, params, method):
         """Runs a shitposting method if the probability chance is met"""
@@ -224,3 +230,11 @@ class ShitpostingHandler(commands.Cog, name='Shitposting'):
         """[Moderator command] Gets the probability that PolBot will randomly post something."""
         params = self.bot.servers.get_server_parameters(ctx.guild)
         await ctx.reply(f"I have a {params.get('shitpost_probability')}% chance to shitpost after a message is posted in my allowed channels")
+    
+    def _strip_trailing_by_punc(self, text:str):
+        punctuation_positions = [text.find(punc) for punc in punctuation]
+        negatives_removed = list(filter(lambda x: x != -1, punctuation_positions))
+        if len(negatives_removed) == 0:
+            return text
+        else:
+            return text[:min(negatives_removed)]
