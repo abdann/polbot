@@ -1,10 +1,10 @@
 {
     "min_account_age": 14,
-    "new_auto_ban_enabled": true,
-    "lockdown_enabled": false,
+    "new_auto_ban": true,
+    "lockdown": false,
     "polder_channel_id": null,
-    "polder_enabled":false,
-    "random_polder_posts_enabled":false,
-    "random_text_posts_enabled":false,
+    "polder":false,
+    "random_polder_posts":false,
+    "random_text_posts":false,
     "shitpost_probability":3
 }
