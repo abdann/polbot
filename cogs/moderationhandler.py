@@ -53,7 +53,8 @@ class ModerationHandler(commands.Cog, name='Moderation'):
     @commands.check(cogs.permissionshandler.PermissionsHandler.trial_moderator_check)
     async def lockdown_status(self, ctx):
         """[Moderator command] Returns whether or not there is a lockdown in effect."""
-        await ctx.reply(f"Lockdown enabled: {await self.bot.servers.get_server_parameters(ctx.guild, 'lockdown').get('lockdown')}")
+        lockdown_status = await self.bot.servers.get_server_parameters(ctx.guild, 'lockdown')
+        await ctx.reply(f"Lockdown enabled: {lockdown_status.get('lockdown')}")
         return
 
     @commands.command(name="setminimumautobanage", aliases=['setminage'])
@@ -74,7 +75,8 @@ class ModerationHandler(commands.Cog, name='Moderation'):
     @commands.check(cogs.permissionshandler.PermissionsHandler.trial_moderator_check)
     async def get_autoban_age(self, ctx):
         """[Moderator command] Command to get the minimum age an account must be to be able to join the server without getting autobanned."""
-        await ctx.reply(f'Minimum account age: {await self.bot.servers.get_server_parameters(ctx.guild, "min_account_age").get("min_account_age")} days')
+        min_age = await self.bot.servers.get_server_parameters(ctx.guild, "min_account_age")
+        await ctx.reply(f'Minimum account age: {min_age.get("min_account_age")} days')
 
 
     @commands.command(name="enableautoban", aliases=['eautoban'])
@@ -107,7 +109,8 @@ class ModerationHandler(commands.Cog, name='Moderation'):
     @commands.check(cogs.permissionshandler.PermissionsHandler.trial_moderator_check)
     async def autoban_status(self, ctx):
         """[Moderator command] Returns whether or not the new account autoban feature is enabled"""
-        await ctx.reply(f"New account autoban feature enabled: {await self.bot.servers.get_server_parameters(ctx.guild, 'new_auto_ban').get('new_auto_ban')}")
+        auto_ban_status = await self.bot.servers.get_server_parameters(ctx.guild, 'new_auto_ban')
+        await ctx.reply(f"New account autoban feature enabled: {auto_ban_status.get('new_auto_ban')}")
         return
 
     @commands.command(name="addwhitelist")

@@ -1,6 +1,16 @@
-from multiprocessing import Condition
 import emojis
 import discord
+from discord.ext import commands
+
+class Emoji(commands.Converter):
+    """Tries to convert an input emoji into a custom emoji first, and if not found into a default emoji"""
+    async def convert(self, ctx, argument):
+        try:
+            emoji_converter = commands.EmojiConverter()
+            custom_emoji = await emoji_converter.convert(ctx, argument)
+            return custom_emoji
+        except commands.EmojiNotFound:
+            return get_default_emoji(argument)
 
 def strtobool(string:str):
     """Parses a simple string as 'True' or 'False' """
@@ -10,23 +20,6 @@ def strtobool(string:str):
          return False
     else:
          raise ValueError
-
-value_types = {
-    "int":int,
-    "str":str,
-    "bool":strtobool
-}
-
-def convert_type(text_value:str, value_type:str):
-    """Converts text_value to the usual Python object using value_type"""
-    if value_type in value_types.keys():
-        return value_types.get(value_type)(text_value)
-    else:
-        raise ValueError
-
-def string_type(value):
-    """Converts the object to a string respresentation"""
-    return str(value).casefold()
 
 colons = [":", ":"]
 
@@ -52,7 +45,7 @@ def get_default_emoji(emoji:str):
             return emoji
         return None
 
-def get_emoji(guild, emoji_string:str):
+def get_emoji(guild, emoji_string:str): #For converting from SQL format to discord.Emoji or Unicode emoji
     """Tries to resolve an input emoji into either a discord.Emoji object or the literal emoji (if it is a default emoji). Raises Error("Not an emoji") if neither case matches"""
     try: # Try to see if it is an ID for an emoji, and retreive the discord.Emoji object from the ID
         emoji = int(emoji_string)
@@ -64,13 +57,13 @@ def get_emoji(guild, emoji_string:str):
     except ValueError: # Try to interpret it as a default emoji and return the encoded Unicode representation
         return get_default_emoji(emoji_string)
 
-def stringify_emoji(emoji_like) -> str:
+def stringify_emoji(emoji_like) -> str: #For converting from discord.Emoji or Unicode emoji to SQL format
     """Inverse function of get_emoji"""
     if isinstance(emoji_like, discord.Emoji):
         return str(emoji_like.id)
     else:
         return get_default_emoji(emoji_like)
-    
+
 def convert_dict_to_sql_update(dictionary:list):
     """Converts a dictionary of columns and values into an SQLite UPDATE string and a tuple of values from the dict, example: ('key1 = (:key1), key2 = (:key2), ...', {"key1" : value1, "key2" : value2, ...}) """
     columns = ", ".join([f"{key} = :{key}" for key in dictionary])

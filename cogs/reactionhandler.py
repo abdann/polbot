@@ -91,8 +91,10 @@ class ReactionHandler(commands.Cog, name='Reaction'):
 
     @commands.command(name="addemojitrigger", aliases=['addemoji'])
     @commands.check(cogs.permissionshandler.PermissionsHandler.executive_moderator_check)
-    async def add_emoji_trigger(self, ctx, trigger_phrase:str, emoji):
+    async def add_emoji_trigger(self, ctx, trigger_phrase:str, emoji:utils.Emoji):
         """[Executive Moderator command] Adds an emoji reaction trigger"""
+        if emoji is None:
+            raise commands.EmojiNotFound
         if await self.bot.servers.add_emoji_reaction_trigger(ctx.guild, trigger_phrase, emoji):
             await ctx.reply("Emoji reaction trigger added!")
             return
@@ -101,8 +103,10 @@ class ReactionHandler(commands.Cog, name='Reaction'):
     
     @commands.command(name="removeemojitrigger", aliases=['rmemoji'])
     @commands.check(cogs.permissionshandler.PermissionsHandler.executive_moderator_check)
-    async def remove_emoji_trigger(self, ctx, trigger_phrase:str, emoji):
+    async def remove_emoji_trigger(self, ctx, trigger_phrase:str, emoji:utils.Emoji):
         """[Executive Moderator command] Removes an emoji reaction trigger"""
+        if emoji is None:
+            raise commands.EmojiNotFound
         if await self.bot.servers.remove_emoji_reaction_trigger(ctx.guild, trigger_phrase=trigger_phrase, emoji=emoji):
             await ctx.reply("Emoji reaction trigger removed")
             return
@@ -140,10 +144,10 @@ class ReactionHandler(commands.Cog, name='Reaction'):
     async def listen_reactions(self, message, reactions_to_add, messages_to_send):
         if len(reactions_to_add) != 0:
             reactions_to_add = [self._coro_react(message, react_emoji) for react_emoji in reactions_to_add]
+            await asyncio.gather(*reactions_to_add)
         if len(messages_to_send) != 0:
             messages_to_send = [self._coro_send_text(message, text) for text in messages_to_send]
-        await asyncio.gather(*reactions_to_add)
-        await asyncio.gather(*messages_to_send)
+            await asyncio.gather(*messages_to_send)
 
     async def _coro_react(self, message, react_emoji):
         await message.add_reaction(react_emoji)
@@ -151,31 +155,13 @@ class ReactionHandler(commands.Cog, name='Reaction'):
     async def _coro_send_text(self, message, text):
         await message.channel.send(text)
 
-    # async def string_search(self, message):
-    #     reactions=[]
-    #     # First combine message into single string with no spaces and lowercase
-    #     content = message.content.casefold()
-    #     # now append any positive hits (THIS IS BLOCKING CODE
-    #     reaction_triggers = await self.bot.servers.get_emoji_reaction_triggers(message.guild)
-    #     for triggerphrase, reaction in reaction_triggers.items():
-    #         if content.find(triggerphrase) != -1:
-    #             react = discord.utils.get(message.guild.emojis, name=reaction)
-    #             if react is not None:
-    #                 if react not in reactions:
-    #                     reactions.append(react)
-    #             elif utils.is_default_emoji(reaction):
-    #                 if reaction not in reactions:
-    #                     reactions.append(reaction)
-    #             else:
-    #                 pass
-    #     return reactions
     async def _string_search(self, message):
         """Searches a string for trigger phrases. Returns a tuple of lists, where the first is the list of reactions to add and the second is the list of messages to send"""
         content = message.content.casefold()
         reaction_triggers = await self.bot.servers.get_emoji_reaction_triggers(message.guild)
-        reactions_to_add = list({trigger_phrase : reaction for trigger_phrase, reaction in reaction_triggers.items() if trigger_phrase in content}.value())
+        reactions_to_add = [reaction for trigger_phrase, reaction in reaction_triggers.items() if trigger_phrase in content]
         if await self.bot.servers.find_in_shitposting_channels(message.guild, message.channel.id):
             text_triggers = await self.bot.servers.get_text_triggers(message.guild)
-            messages_to_send = list({trigger_phrase : text_to_send for trigger_phrase, text_to_send in text_triggers if trigger_phrase in content}.values())
-        messages_to_send = messages_to_send if messages_to_send is not None else list() # for non-shitposting channels
-        return (reactions_to_add, messages_to_send)
+            messages_to_send = [text_to_send for trigger_phrase, text_to_send in text_triggers.items() if trigger_phrase in content]
+            return (reactions_to_add, messages_to_send)
+        return (reactions_to_add, list())

@@ -13,9 +13,10 @@ class ServerConfigHandler:
         # Would use aiofiles, but can't make __init__ an async method
         with open("default_parameters.json", "r") as f:
             self.default_parameters = json.load(f)
-
+    
     async def get_server_parameters(self, guild, *parameters) -> dict:
         """Fetches the server parameters specified in :parameters: for the server :guild:. Returns a dictionary of type "parameter" : value, where value is the corresponding parameter value. if "a" is passed, all server parameters are returned"""
+        await self._checks(guild)
         if "a" in parameters:
             params_to_get = list(self.default_parameters.keys())
         else:
@@ -29,6 +30,7 @@ class ServerConfigHandler:
     
     async def update_server_parameters(self, guild, **parameters):
         """Updates the server parameters specified in :parameters: for the server :guild:. values of parameters can be natural objects."""
+        await self._checks(guild)
         # First get the valid parameters dict
         valid_parameters = {parameter : value for parameter, value in parameters.items() if parameter in self.default_parameters.keys()} #sanitizes parameters
         # Then build the update query
@@ -40,16 +42,18 @@ class ServerConfigHandler:
 
     async def find_in_server_auto_ban_whitelist(self, guild, user) -> bool:
         """Finds the specified user in the auto-ban whitelist. Returns True if found, False otherwise."""
+        await self._checks(guild)
         async with aiosqlite.connect(self.serverdata) as db:
             async with db.execute("""SELECT user_id FROM auto_ban_whitelist WHERE (server_id = (?) AND user_id = (?))""", (guild.id, user.id)) as cursor:
-                existing_rows = await cursor.fetchall()
-        if len(existing_rows) != 0:
+                existing_rows = await cursor.fetchone()
+        if existing_rows is not None:
             return True
         else:
             return False
     
     async def get_server_auto_ban_whitelist(self, guild):
         """Gets the entire auto ban whitelist for a server"""
+        await self._checks(guild)
         whitelisted_users = list()
         async with aiosqlite.connect(self.serverdata) as db:
             db.row_factory = aiosqlite.Row
@@ -60,11 +64,12 @@ class ServerConfigHandler:
     
     async def remove_in_server_auto_ban_whitelist(self, guild, user) -> bool:
         """Removes a user from the whitelist. Returns True if the user was found and removed, otherwise return False"""
+        await self._checks(guild)
         async with aiosqlite.connect(self.serverdata) as db:
             # Checks if the user is not in the ban whitelist
             async with db.execute("""SELECT user_id FROM auto_ban_whitelist WHERE (server_id = (?) AND user_id = (?))""", (guild.id, user.id)) as cursor:
-                existing_rows = await cursor.fetchall()
-            if len(existing_rows) == 0:
+                existing_rows = await cursor.fetchone()
+            if existing_rows is None:
                 return False # Indicates that the user is not already whitelisted for that server and was not found
             # Delete the entry
             await db.execute("""DELETE FROM auto_ban_whitelist WHERE (server_id = (?) AND user_id == (?))""", (guild.id, user.id))
@@ -73,11 +78,12 @@ class ServerConfigHandler:
 
     async def add_in_server_auto_ban_whitelist(self, guild, user) -> bool:
         """Adds a user to the auto-ban whitelist. Returns True if successfully added the user to the whitelist, False if they already are in the whitelist"""
+        await self._checks(guild)
         async with aiosqlite.connect(self.serverdata) as db:
             # Checks if the user is already in the ban whitelist
             async with db.execute("""SELECT user_id FROM auto_ban_whitelist WHERE (server_id = (?) AND user_id = (?))""", (guild.id, user.id)) as cursor:
-                existing_rows = await cursor.fetchall()
-            if len(existing_rows) != 0:
+                existing_rows = await cursor.fetchone()
+            if existing_rows is not None:
                 return False # Indicates that the user is already whitelisted for that server
             # If the entry doesn't already exist, then insert it
             await db.execute("""INSERT INTO auto_ban_whitelist VALUES ((?), (?))""", (guild.id, user.id))
@@ -86,6 +92,7 @@ class ServerConfigHandler:
 
     async def get_text_triggers(self, guild) -> dict:
         """Gets a dictionary of the text triggers set for that server"""
+        await self._checks(guild)
         async with aiosqlite.connect(self.serverdata) as db:
             db.row_factory = aiosqlite.Row
             async with db.execute("""SELECT trigger_phrase, message FROM text_triggers WHERE (server_id = (?))""", (guild.id,)) as cursor:
@@ -94,6 +101,7 @@ class ServerConfigHandler:
     
     async def add_text_trigger(self, guild, trigger_phrase:str, message:str) -> bool:
         """Adds a text trigger for a server. Returns True if the trigger was added and False if the trigger is already present"""
+        await self._checks(guild)
         async with aiosqlite.connect(self.serverdata) as db:
             # Checks if the trigger is already set
             async with db.execute("""SELECT trigger_phrase, message FROM text_triggers WHERE (server_id = (?) AND trigger_phrase = (?))""", (guild.id, trigger_phrase)) as cursor:
@@ -107,6 +115,7 @@ class ServerConfigHandler:
 
     async def remove_text_trigger(self, guild, **kwargs) -> bool:
         """Removes a text trigger :trigger_phrase: or :message: for a server. Returns True if the trigger was removed and False if the trigger was not found"""
+        await self._checks(guild)
         if kwargs is None:
             raise Error("Must pass at least one argument")
         valid_columns = ["trigger_phrase", "message"] # allowed keywords
@@ -126,6 +135,7 @@ class ServerConfigHandler:
 
     async def get_emoji_reaction_triggers(self, guild) -> dict:
         """Gets a dictionary of the emoji reaction triggers set for that server"""
+        await self._checks(guild)
         async with aiosqlite.connect(self.serverdata) as db:
             db.row_factory = aiosqlite.Row
             async with db.execute("""SELECT trigger_phrase, emoji FROM emoji_triggers WHERE (server_id = (?))""", (guild.id,)) as cursor:
@@ -134,11 +144,12 @@ class ServerConfigHandler:
 
     async def add_emoji_reaction_trigger(self, guild, trigger_phrase:str, emoji_like) -> bool:
         """Adds an emoji reaction trigger for a server. Returns True if the trigger was added and False if the trigger is already present"""
+        await self._checks(guild)
         emoji_like = utils.stringify_emoji(emoji_like)
         async with aiosqlite.connect(self.serverdata) as db:
             # Checks if the trigger is already set
             async with db.execute("""SELECT trigger_phrase, emoji FROM emoji_triggers WHERE (server_id = (?) AND trigger_phrase = (?))""", (guild.id, trigger_phrase)) as cursor:
-                existing_rows = await cursor.fetchall()
+                existing_rows = await cursor.fetchone()
             if existing_rows is not None:
                 return False # Indicates that the specific combination is already set for that server
             # If the entry doesn't already exist, then insert it
@@ -148,6 +159,7 @@ class ServerConfigHandler:
 
     async def remove_emoji_reaction_trigger(self, guild, **kwargs) -> bool:
         """Removes an emoji reaction trigger given the :trigger_phrase: and/or :emoji: for a server. Returns True if the trigger was removed and False if the trigger was not found"""
+        await self._checks(guild)
         if kwargs is None:
             raise Error("Must pass at least one argument")
         valid_columns = ["trigger_phrase", "emoji"] # allowed keywords
@@ -169,6 +181,7 @@ class ServerConfigHandler:
     
     async def get_random_polder(self, guild):
         """Gets a random piece of content from polder. Returns a string if found, else None."""
+        await self._checks(guild)
         async with aiosqlite.connect(self.serverdata) as db:
             async with db.execute("""SELECT content FROM polder WHERE server_id = (?) ORDER BY RANDOM() LIMIT 1""", (guild.id,)) as cursor:
                 random_row = await cursor.fetchone()
@@ -179,12 +192,14 @@ class ServerConfigHandler:
 
     async def add_in_polder(self, guild, *, content:str, message_id:int, author_id:int):
         """Adds a piece of content (text or link) to polder table. """
+        await self._checks(guild)
         async with aiosqlite.connect(self.serverdata) as db:
             await db.execute("""INSERT INTO polder VALUES (?, ?, ?, ?)""", (guild.id, message_id, content, author_id))
             await db.commit()
 
     async def remove_in_polder(self, guild, **kwargs) -> bool:
         """Removes a saved polder entry given a piece of content (text or link). Returns True if the content was found and removed, False otherwise"""
+        await self._checks(guild)
         if kwargs is None:
             raise Error("Must pass at least one argument")
         valid_columns = ["content", "message_id", "author_id"] # allowed keywords
@@ -205,6 +220,7 @@ class ServerConfigHandler:
 
     async def add_in_shitposting_channels(self, guild, channel_id:int) -> bool:
         """Adds a shitposting channel for a server. Returns True if the channel was added and False if the channel is already present"""
+        await self._checks(guild)
         async with aiosqlite.connect(self.serverdata) as db:
             async with db.execute("SELECT channel_id FROM shitposting_channels WHERE channel_id = ?", (channel_id,)) as cursor:
                 existing_row = await cursor.fetchone()
@@ -215,11 +231,12 @@ class ServerConfigHandler:
             return True
     
     async def remove_in_shitposting_channels(self, guild, channel_id:int) -> bool:
+        await self._checks(guild)
         async with aiosqlite.connect(self.serverdata) as db:
             # Checks if the channel is not in the table
             async with db.execute("""SELECT channel_id FROM shitposting_channels WHERE server_id = ? AND channel_id = ?""", (guild.id, channel_id)) as cursor:
-                existing_rows = await cursor.fetchall()
-            if len(existing_rows) == 0:
+                existing_rows = await cursor.fetchone()
+            if existing_rows is None:
                 return False # Indicates that the channel is not already present for that server and was not found
             # Delete the entry
             await db.execute("""DELETE FROM shitposting_channels WHERE (server_id = (?) AND channel_id = (?))""", (guild.id, channel_id))
@@ -227,6 +244,7 @@ class ServerConfigHandler:
             return True
     
     async def find_in_shitposting_channels(self, guild, channel_id:int) -> bool:
+        await self._checks(guild)
         async with aiosqlite.connect(self.serverdata) as db:
             async with db.execute("""SELECT channel_id FROM shitposting_channels WHERE (server_id = (?) AND channel_id = (?))""", (guild.id, channel_id)) as cursor:
                 existing_rows = await cursor.fetchone()
@@ -236,6 +254,7 @@ class ServerConfigHandler:
             return False
     
     async def get_shitposting_channels(self, guild) -> list:
+        await self._checks(guild)
         shitposting_channels = list()
         async with aiosqlite.connect(self.serverdata) as db:
             db.row_factory = aiosqlite.Row
