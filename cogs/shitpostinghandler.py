@@ -1,23 +1,26 @@
+from string import punctuation
 import discord
 import cogs.permissionshandler
 from discord.ext import commands
 from random import random, sample
 import re
 
-no_ping = discord.AllowedMentions(everyone=False, users=False, roles=False, replied_user=False)
+
+punctuation = [".", "?", "!"]
+mute_pings = discord.AllowedMentions(everyone=False, users=False, roles=False, replied_user=False)
+
 class ShitpostingHandler(commands.Cog, name='Shitposting'):
     """Handles all shitposting commands and features of the bot"""
     def __init__(self, bot):
         self.bot = bot
-
     @commands.Cog.listener()
     async def on_message(self, message):
         if message.author.id == self.bot.user.id:
             return
-        if self.bot.user.mentioned_in(message):
-            await message.reply("https://tenor.com/view/annoying-who-pinged-me-angry-gif-14512411")
         params = await self.bot.servers.get_server_parameters(message.guild, "a")
         if await self.bot.servers.find_in_shitposting_channels(message.guild, message.channel.id):
+            if self.bot.user.mentioned_in(message):
+                await self._post_random_text(message, params)
             await self._post_listener(message, params, self._post_random_polder)
             await self._post_listener(message, params, self._post_random_text)
         await self._add_polder_post(message, params)
@@ -55,47 +58,6 @@ class ShitpostingHandler(commands.Cog, name='Shitposting'):
         await self.bot.servers.update_server_parameters(ctx.guild, **params)
         await ctx.reply("Polder image collection is now disabled.")
 
-    # @commands.command(name="removepolderpost", aliases=['rmpolderpost'])
-    # @commands.check(cogs.permissionshandler.PermissionsHandler.moderator_check)
-    # async def remove_polder_post(self, ctx):
-    #     """[Default Mod command] When this command is run in a reply to a polder post posted by PolBot, it removes the polder post from PolBot's memory."""
-    #     posted_message = await ctx.channel.fetch_message(ctx.message.reference.message_id)
-    #     params = await self.bot.servers.get_server_parameters(ctx.guild, "polder_channel_id")
-    #     if ctx.channel.id == params.get("polder_channel_id"):
-    #     # if posted_message.author.id != self.bot.user.id:
-    #     #     await ctx.reply("The message you replied to is not something *I* posted, you twat.")
-    #     #     return
-    #         if len(posted_message.attachments) != 0: #For image posts from polder
-    #             # IMPORTANT: Assumes that PolBot can only post 1 image per image shitpost
-    #             discord_media_link = posted_message.attachments.pop(0).url
-    #             if await self.bot.servers.remove_in_polder(ctx.guild, content=discord_media_link):
-    #                 # await ctx.reply("I won't post *that* ever again ;)")
-    #                 await ctx.reply("I didn't see nuffin' ;)")
-    #                 return
-    #             await ctx.reply("I don't remember having *that* saved (I may be having a stroke, please call my master)")
-    #         else: # For text posts from polder
-    #             if await self.bot.servers.remove_in_polder(ctx.guild, content=posted_message.content):
-    #                 await ctx.reply("I didn't see nuffin' ;)")
-    #                 return
-    #             await ctx.reply("I don't remember having *that* saved (I may be having a stroke, please call my master)")
-    #     else: #Assumes that we are anywhere else other than polder
-    #         if posted_message.author.id != self.bot.user.id:
-    #             await ctx.reply("The message you replied to is not something *I* posted, you twat.")
-    #             return
-    #         else: # Implies that PolBot posted posted_message
-    #             if len(posted_message.attachments) != 0: #For image posts from polder
-    #                 # IMPORTANT: Assumes that PolBot can only post 1 image per image shitpost
-    #                 discord_media_link = posted_message.attachments.pop(0).url
-    #                 if await self.bot.servers.remove_in_polder(ctx.guild, content=discord_media_link):
-    #                     await ctx.reply("I won't post *that* ever again ;)")
-    #                     return
-    #                 await ctx.reply("I don't remember having *that* saved (I may be having a stroke, please call my master)")
-    #             else: # For text posts from polder
-    #                 if await self.bot.servers.remove_in_polder(ctx.guild, content=posted_message.content):
-    #                     await ctx.reply("I won't post *that* ever again ;)")
-    #                     return
-    #                 await ctx.reply("I don't remember having *that* saved (I may be having a stroke, please call my master)")
-
     @commands.command(name="removepolderpost", aliases=['rmpolderpost'])
     @commands.check(cogs.permissionshandler.PermissionsHandler.moderator_check)
     async def remove_polder_post(self, ctx):
@@ -127,19 +89,7 @@ class ShitpostingHandler(commands.Cog, name='Shitposting'):
             else:
                 await ctx.reply("The message you replied to is not something *I* posted, you twat.")
                 return
-    # async def _add_polder_post(self, message:discord.Message, params):
-    #     """Adds an image link OR message text to PolBot's repetoire of things he can post from polder."""
-    #     if message.channel.id == params.get("polder_channel_id") and params.get("polder"):
-    #         if message.content.startswith(self.bot.command_prefix): # Exit if contains command
-    #             return
-    #         if message.author.id == self.bot.user.id: # Exit if bot message
-    #             return
-    #         # IMPORTANT: Assumes that PolBot can only post 1 image per image shitpost. Multiple images won't be added. Also assumes that an image is posted separately from text
-    #         if len(message.attachments) != 0: #The post is a message
-    #             image = message.attachments.pop(0)
-    #             await self.bot.servers.add_in_polder(message.guild, content=image.url, message_id=message.id, author_id=message.author.id)
-    #         else: #The post is a text
-    #             await self.bot.servers.add_in_polder(message.guild, content=message.content, message_id=message.id, author_id=message.author.id)
+
     
     async def _add_polder_post(self, message:discord.Message, params):
         """Adds a message to PolBot's repetoire of things he can post from polder."""
@@ -217,7 +167,10 @@ class ShitpostingHandler(commands.Cog, name='Shitposting'):
             words = words.split()
             shitpost = sample(words, int(random()*len(words)/2)) #Restricts the sample of words to be at most half the length of words
             shitpost = " ".join(shitpost) # combine them into a single string
-            await message.channel.send(shitpost[:2000], allowed_mentions=no_ping) #limits to 2000 characters (discord limit)
+            shitpost = self._strip_trailing_by_punc(shitpost)
+            if len(shitpost) == 0:
+                shitpost = "@everyone" #easter egg lol
+            await message.channel.send(shitpost[:2000], allowed_mentions=mute_pings) #limits to 2000 characters (discord limit)
     
     async def _post_listener(self, message, params, method):
         """Runs a shitposting method if the probability chance is met"""
@@ -262,3 +215,11 @@ class ShitpostingHandler(commands.Cog, name='Shitposting'):
         """[Default Mod command] Gets the probability that PolBot will randomly post something."""
         params = await self.bot.servers.get_server_parameters(ctx.guild, "shitpost_probability")
         await ctx.reply(f"I have a {params.get('shitpost_probability')}% chance to shitpost after a message is posted in my allowed channels")
+
+    def _strip_trailing_by_punc(self, text:str):
+        punctuation_positions = [text.find(punc) for punc in punctuation]
+        negatives_removed = list(filter(lambda x: x != -1, punctuation_positions))
+        if len(negatives_removed) == 0:
+            return text
+        else:
+            return text[:min(negatives_removed)]

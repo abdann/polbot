@@ -132,9 +132,9 @@ class ReactionHandler(commands.Cog, name='Reaction'):
         await self.listen_reactions(message, reactions[0], reactions[1])
 
         # # :christmas_troll: poor chaotic :amogus:
-        # if message.author.id == 731659389550985277:
-        #     sussy = discord.utils.get(message.guild.emojis, name="sus")
-        #     await message.add_reaction(sussy)
+        if message.author.id == 731659389550985277:
+            sussy = discord.utils.get(message.guild.emojis, name="sus")
+            await message.add_reaction(sussy)
 
     # async def listen_reactions(self, message, react_emojis):
     #     if len(react_emojis) != 0:
