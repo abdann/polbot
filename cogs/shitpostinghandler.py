@@ -156,7 +156,7 @@ class ShitpostingHandler(commands.Cog, name='Shitposting'):
         if params.get("random_polder_posts"):
             content = await self.bot.servers.get_random_polder(message.guild)
             if content is not None:
-                await message.channel.send(content, allowed_mentions=no_ping)
+                await message.channel.send(content, allowed_mentions=mute_pings)
     
     async def _post_random_text(self, message:discord.Message, params):
         """Creates a random piece of text from the 20 previous messages in chat. Filters links and mentions, and limits the output to 2000 characters (discord limit)"""
