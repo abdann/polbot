@@ -72,7 +72,7 @@ class ServerConfigHandler:
             if existing_rows is None:
                 return False # Indicates that the user is not already whitelisted for that server and was not found
             # Delete the entry
-            await db.execute("""DELETE FROM auto_ban_whitelist WHERE (server_id = (?) AND user_id == (?))""", (guild.id, user.id))
+            await db.execute("""DELETE FROM auto_ban_whitelist WHERE (server_id = (?) AND user_id = (?))""", (guild.id, user.id))
             await db.commit()
             return True
 
@@ -211,7 +211,7 @@ class ServerConfigHandler:
         async with aiosqlite.connect(self.serverdata) as db:
             async with db.execute(select_statement, params) as cursor:
                 existing_row = await cursor.fetchone()
-            if len(existing_row) == 0:
+            if existing_row is None:
                 return False
             delete_statement = f"DELETE FROM polder WHERE server_id = :server_id AND {conditions}" #Build delete statement
             await db.execute(delete_statement, params)

@@ -154,18 +154,18 @@ class ModerationHandler(commands.Cog, name='Moderation'):
 
     @commands.Cog.listener()
     async def on_member_join(self, member):
-        await self.lockdown_listener(member)
-        await self.auto_ban_listener(member)
+        params = await self.bot.servers.get_server_parameters(member.guild, "lockdown", "new_auto_ban", "min_account_age")
+        await self.lockdown_listener(member, params)
+        await self.auto_ban_listener(member, params)
 
-    async def lockdown_listener(self, member):
-        if await self.bot.servers.get_server_parameters(member.guild, "lockdown").get("lockdown"):
+    async def lockdown_listener(self, member, params):
+        if params.get("lockdown"):
             dms = await member.create_dm()
-            await dms.send(content="The server is currently in lockdown! Please try joining again soon.")
+            await dms.send(content="The server Political Compass Memes is currently in lockdown due to an issue! Please try joining again soon.")
             await member.kick(reason="Lockdown Enabled.")
             return
     
-    async def auto_ban_listener(self, member):
-        params = await self.bot.servers.get_server_parameters(member.guild, "new_auto_ban", "min_account_age")
+    async def auto_ban_listener(self, member, params):
         if params.get("new_auto_ban"):
             if not await self.bot.servers.find_in_server_auto_ban_whitelist(member.guild, member):
                 account_age = datetime.datetime.now() - member.created_at

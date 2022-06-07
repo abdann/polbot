@@ -100,7 +100,7 @@ class ShitpostingHandler(commands.Cog, name='Shitposting'):
                 return
             uploaded_media_link_list = [attachment.url for attachment in message.attachments]
             uploaded_media_links = "\n".join(uploaded_media_link_list) if len(uploaded_media_link_list) > 0 else ""
-            content = message.content + "\n" + uploaded_media_links
+            content = message.content + "\n" + uploaded_media_links if uploaded_media_links != "" else message.content
             await self.bot.servers.add_in_polder(message.guild, content=content, message_id=message.id, author_id=message.author.id)
 
     @commands.command(name="enablerandomtextposts", aliases=['erandomtext'])
