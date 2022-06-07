@@ -151,6 +151,27 @@ class ModerationHandler(commands.Cog, name='Moderation'):
             return
         await ctx.reply("No whitelisted users")
 
+    @commands.command(name="ban")
+    @commands.check(cogs.permissionshandler.PermissionsHandler.moderator_check)
+    async def ban(self, ctx, user:discord.User, *reason):
+        reason = " ".join(reason)
+        if reason == "":
+            await ctx.reply("A reason must be supplied to ban someone")
+            return
+        await ctx.guild.ban(user, reason=reason, delete_message_days=0)
+        await ctx.reply(f"Banned user {user.name}#{user.discriminator} (ID {user.id})")
+        return
+    
+    @commands.command(name="unban")
+    @commands.check(cogs.permissionshandler.PermissionsHandler.moderator_check)
+    async def unban(self, ctx, user:discord.User, *reason):
+        reason = " ".join(reason)
+        if reason == "":
+            await ctx.reply("A reason must be supplied to unban someone")
+            return
+        await ctx.guild.unban(user, reason=reason)
+        await ctx.reply(f"Unbanned user {user.name}#{user.discriminator} (ID {user.id})")
+        return
 
     @commands.Cog.listener()
     async def on_member_join(self, member):
