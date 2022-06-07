@@ -68,7 +68,7 @@ class ShitpostingHandler(commands.Cog, name='Shitposting'):
             if posted_message.author.id != self.bot.user.id: #If the posted message to remove was not posted by the bot
                 uploaded_media_link_list = [attachment.url for attachment in posted_message.attachments]
                 uploaded_media_links = "\n".join(uploaded_media_link_list) if len(uploaded_media_link_list) > 0 else ""
-                content = posted_message.content + "\n" + uploaded_media_links
+                content = posted_message.content + "\n" + uploaded_media_links if uploaded_media_links != "" else posted_message.content
                 if await self.bot.servers.remove_in_polder(ctx.guild, content=content):
                     await ctx.reply("I won't post *that* ever again ;)")
                     return
