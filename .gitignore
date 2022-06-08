@@ -4,3 +4,4 @@ parameters.json
 reaction_triggers.json
 servers/
 .venv/*
+__pycache__/
