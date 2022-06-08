@@ -1,8 +1,8 @@
 import json
 import asyncio
+from msilib.schema import Error
 import pathlib
 import aiosqlite
-from lockfile import Error
 import utils
 
 

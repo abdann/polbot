@@ -3,3 +3,4 @@ auto_ban_whitelist.json
 parameters.json
 reaction_triggers.json
 servers/
+.venv/*
