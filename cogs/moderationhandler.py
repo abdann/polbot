@@ -3,6 +3,8 @@ import cogs.permissionshandler
 from discord.ext import commands
 import datetime
 
+tz = discord.utils.utcnow().astimezone().tzinfo
+
 class ModerationHandler(commands.Cog, name='Moderation'):
     """Handles all moderation functions of the bot as well as corresponding commands"""
     def __init__(self, bot):
@@ -189,7 +191,7 @@ class ModerationHandler(commands.Cog, name='Moderation'):
     async def auto_ban_listener(self, member, params):
         if params.get("new_auto_ban"):
             if not await self.bot.servers.find_in_server_auto_ban_whitelist(member.guild, member):
-                account_age = datetime.datetime.now() - member.created_at
+                account_age = discord.utils.utcnow() - member.created_at
                 if account_age.total_seconds() < datetime.timedelta(days=params.get('min_account_age')).total_seconds():
                     dm = await member.create_dm()
                     await dm.send(embed=self.ban_embed)

@@ -2,7 +2,6 @@ import json
 import asyncio
 import pathlib
 import aiosqlite
-from lockfile import Error
 import utils
 
 
@@ -117,7 +116,7 @@ class ServerConfigHandler:
         """Removes a text trigger :trigger_phrase: or :message: for a server. Returns True if the trigger was removed and False if the trigger was not found"""
         await self._checks(guild)
         if kwargs is None:
-            raise Error("Must pass at least one argument")
+            raise ValueError("Must pass at least one argument")
         valid_columns = ["trigger_phrase", "message"] # allowed keywords
         params = {k : v for k, v in kwargs.items() if k in valid_columns and v is not None} # sanitizes kwargs
         conditions = utils.build_sql_and(list(params.keys())) # build or statement for passed params
@@ -161,7 +160,7 @@ class ServerConfigHandler:
         """Removes an emoji reaction trigger given the :trigger_phrase: and/or :emoji: for a server. Returns True if the trigger was removed and False if the trigger was not found"""
         await self._checks(guild)
         if kwargs is None:
-            raise Error("Must pass at least one argument")
+            raise ValueError("Must pass at least one argument")
         valid_columns = ["trigger_phrase", "emoji"] # allowed keywords
         params = {k : v for k, v in kwargs.items() if k in valid_columns and v is not None} # sanitizes kwargs
         conditions = utils.build_sql_and(list(params.keys())) # build or statement
@@ -201,7 +200,7 @@ class ServerConfigHandler:
         """Removes a saved polder entry given a piece of content (text or link). Returns True if the content was found and removed, False otherwise"""
         await self._checks(guild)
         if kwargs is None:
-            raise Error("Must pass at least one argument")
+            raise ValueError("Must pass at least one argument")
         valid_columns = ["content", "message_id", "author_id"] # allowed keywords
         
         params = {k : v for k, v in kwargs.items() if k in valid_columns and v is not None} # sanitizes kwargs
