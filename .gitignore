@@ -2,4 +2,4 @@
 __pycache__/
 cogs/__pycache__
 servers/
-.venv/
+venv/
