@@ -4,10 +4,12 @@ import cogs.permissionshandler
 from discord.ext import commands
 from random import random, sample
 import re
+import utils
 
 
 punctuation = [".", "?", "!"]
-mute_pings = discord.AllowedMentions(everyone=False, users=False, roles=False, replied_user=False)
+mute_all_pings = discord.AllowedMentions(everyone=False, users=False, roles=False, replied_user=False)
+mute_role_and_everyone_pings = discord.AllowedMentions(everyone=False, users=True, roles=False, replied_user=True)
 
 class ShitpostingHandler(commands.Cog, name='Shitposting'):
     """Handles all shitposting commands and features of the bot"""
@@ -169,7 +171,7 @@ class ShitpostingHandler(commands.Cog, name='Shitposting'):
                         return
                     except discord.HTTPException:
                         return
-                    await message.channel.send(polder_message.content, allowed_mentions=mute_pings)
+                    await message.channel.send(polder_message.content, allowed_mentions=mute_all_pings)
     
     async def _post_random_text(self, message:discord.Message, params):
         """Creates a random piece of text from the 20 previous messages in chat. Filters links and mentions, and limits the output to 2000 characters (discord limit)"""
@@ -183,7 +185,7 @@ class ShitpostingHandler(commands.Cog, name='Shitposting'):
             shitpost = self._strip_trailing_by_punc(shitpost)
             if len(shitpost) == 0:
                 shitpost = "@everyone" #easter egg lol
-            await message.channel.send(shitpost[:2000], allowed_mentions=mute_pings) #limits to 2000 characters (discord limit)
+            await message.channel.send(shitpost[:2000], allowed_mentions=mute_all_pings) #limits to 2000 characters (discord limit)
     
     async def _post_listener(self, message, params, method):
         """Runs a shitposting method if the probability chance is met"""
@@ -236,3 +238,14 @@ class ShitpostingHandler(commands.Cog, name='Shitposting'):
             return text
         else:
             return text[:min(negatives_removed)]
+    
+    @commands.command(name="say")
+    @commands.check(cogs.permissionshandler.PermissionsHandler.moderator_check)
+    async def say(self, ctx, channel:discord.TextChannel, *, flags: utils.SayFlags):
+        """
+        Speak through the bot.
+        channel: Required; the channel to speak in. Can be a # reference or an ID
+        -text: Required; the text to say.
+        -replyto: Optional; the message to reply to. Usually specified by ID.
+        """
+        await channel.send(" ".join(flags.text), allowed_mentions=mute_role_and_everyone_pings, reference=flags.replyto)

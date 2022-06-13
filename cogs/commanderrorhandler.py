@@ -19,6 +19,10 @@ class CommandErrHandler(commands.Cog):
             await ctx.reply(f'The emoji was not found!')
         if isinstance(error, commands.UserNotFound):
             await ctx.reply("The user specified by the following was not found!: " + error.argument)
+        if isinstance(error, commands.ChannelNotFound):
+            await ctx.reply("The channel specified by the following was not found!: " + error.argument)
+        if isinstance(error, commands.MessageNotFound):
+            await ctx.reply("The message specified by the following was not found!: " + error.argument)
         else:
             print(f'Ignoring exception in command {ctx.command}', file=sys.stderr)
             traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)

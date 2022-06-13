@@ -1,3 +1,5 @@
+from typing import Optional
+import typing
 import emojis
 import discord
 from discord.ext import commands
@@ -11,6 +13,10 @@ class Emoji(commands.Converter):
             return custom_emoji
         except commands.EmojiNotFound:
             return get_default_emoji(argument)
+
+class SayFlags(commands.FlagConverter, delimiter=' ', prefix='-'):
+    replyto: discord.Message = commands.flag(name='replyto', default=None)
+    text: typing.List[str]
 
 def strtobool(string:str):
     """Parses a simple string as 'True' or 'False' """
