@@ -101,7 +101,7 @@ class ShitpostingHandler(commands.Cog, name='Shitposting'):
             uploaded_media_link_list = [attachment.url for attachment in message.attachments]
             uploaded_media_links = "\n".join(uploaded_media_link_list) if len(uploaded_media_link_list) > 0 else ""
             content = message.content + "\n" + uploaded_media_links if uploaded_media_links != "" else message.content
-            await self.bot.servers.add_in_polder(message.guild, content=content, message_id=message.id, author_id=message.author.id)
+            await self.bot.servers.add_in_polder(message.guild, content=content, message_id=message.id, author_id=message.author.id, channel_id=message.channel.id)
 
     @commands.command(name="enablerandomtextposts", aliases=['erandomtext'])
     @commands.check(cogs.permissionshandler.PermissionsHandler.admin_check)
@@ -156,7 +156,20 @@ class ShitpostingHandler(commands.Cog, name='Shitposting'):
         if params.get("random_polder_posts"):
             content = await self.bot.servers.get_random_polder(message.guild)
             if content is not None:
-                await message.channel.send(content, allowed_mentions=mute_pings)
+                message_id, channel_id = content
+                channel = discord.utils.get(message.guild.channels, id=channel_id)
+                if channel is not None:
+                    try:
+                        polder_message = await channel.fetch_message(message_id)
+                    except discord.NotFound:
+                        await self.bot.servers.remove_in_polder(message.guild, message_id=message_id)
+                        return await self._post_random_polder(message, params) #recursively try again
+                    except discord.Forbidden:
+                        message.channel.send("Error: I am unable to access polder messages due to permissions.")
+                        return
+                    except discord.HTTPException:
+                        return
+                    await message.channel.send(polder_message.content, allowed_mentions=mute_pings)
     
     async def _post_random_text(self, message:discord.Message, params):
         """Creates a random piece of text from the 20 previous messages in chat. Filters links and mentions, and limits the output to 2000 characters (discord limit)"""

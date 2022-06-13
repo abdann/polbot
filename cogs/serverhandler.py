@@ -179,21 +179,21 @@ class ServerConfigHandler:
             return True
     
     async def get_random_polder(self, guild):
-        """Gets a random piece of content from polder. Returns a string if found, else None."""
+        """Gets a random piece of content from polder. Returns a tuple of (message_id, channel_id) if found, else None."""
         await self._checks(guild)
         async with aiosqlite.connect(self.serverdata) as db:
-            async with db.execute("""SELECT content FROM polder WHERE server_id = (?) ORDER BY RANDOM() LIMIT 1""", (guild.id,)) as cursor:
+            async with db.execute("""SELECT message_id, channel_id FROM polder WHERE server_id = (?) ORDER BY RANDOM() LIMIT 1""", (guild.id,)) as cursor:
                 random_row = await cursor.fetchone()
         if random_row is not None: # Found content for that server
-            return random_row[0]
+            return random_row #(message_id, channel_id)
         else: # RARE CASE where polder is empty for that server
             return None
 
-    async def add_in_polder(self, guild, *, content:str, message_id:int, author_id:int):
+    async def add_in_polder(self, guild, *, content:str, message_id:int, author_id:int, channel_id:int):
         """Adds a piece of content (text or link) to polder table. """
         await self._checks(guild)
         async with aiosqlite.connect(self.serverdata) as db:
-            await db.execute("""INSERT INTO polder VALUES (?, ?, ?, ?)""", (guild.id, message_id, content, author_id))
+            await db.execute("""INSERT INTO polder VALUES (?, ?, ?, ?, ?)""", (guild.id, message_id, content, author_id, channel_id))
             await db.commit()
 
     async def remove_in_polder(self, guild, **kwargs) -> bool:
@@ -201,7 +201,7 @@ class ServerConfigHandler:
         await self._checks(guild)
         if kwargs is None:
             raise ValueError("Must pass at least one argument")
-        valid_columns = ["content", "message_id", "author_id"] # allowed keywords
+        valid_columns = ["content", "message_id", "author_id, channel_id"] # allowed keywords
         
         params = {k : v for k, v in kwargs.items() if k in valid_columns and v is not None} # sanitizes kwargs
         conditions = utils.build_sql_and(list(params.keys())) # build or statement for passed params
@@ -295,7 +295,8 @@ CREATE TABLE IF NOT EXISTS "polder" (
 	"server_id"	INTEGER NOT NULL,
 	"message_id"	INTEGER NOT NULL,
 	"content"	TEXT NOT NULL,
-	"author_id"	INTEGER,
+	"author_id"	INTEGER NOT NULL,
+    "channel_id" INTEGER NOT NULL,
 	FOREIGN KEY("server_id") REFERENCES "servers"("server_id") ON DELETE CASCADE
 );
 CREATE TABLE IF NOT EXISTS "servers" (
