@@ -278,7 +278,7 @@ class ShitpostingHandler(commands.Cog, name='Shitposting'):
         """Make a corpus of text suitable for a chain"""
         valid_params = ["limit"] # allowed keywords
         params = {k : v for k, v in kwargs.items() if k in valid_params and v is not None} # sanitizes kwargs
-        return "\n".join([message.content async for message in channel.history(limit=params.get("limit", 500)) if (re.match(self.RE_MESSAGE_MATCH, message.content) and not message.author.bot)])
+        return ".".join([message.content async for message in channel.history(limit=params.get("limit", 500)) if (re.match(self.RE_MESSAGE_MATCH, message.content) and not message.author.bot)])
     
     def _make_chain(self, text):
-        return markovify.NewlineText(text, state_size=2)
+        return markovify.Text(text, state_size=2)
