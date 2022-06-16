@@ -4,7 +4,10 @@ import cogs.permissionshandler
 from discord.ext import commands
 from random import random, sample
 import re
+import markovify
 import utils
+from os import walk
+from pathlib import Path
 
 
 punctuation = [".", "?", "!"]
@@ -15,6 +18,14 @@ class ShitpostingHandler(commands.Cog, name='Shitposting'):
     """Handles all shitposting commands and features of the bot"""
     def __init__(self, bot):
         self.bot = bot
+        chains=[]
+        for currentdirname, dirnames, filenames in walk(Path("corpi")):
+            for filename in filenames:
+                with open((Path("corpi") / filename).resolve()) as f:
+                    chains.append(markovify.Text(f, retain_original=True))
+        self.pol_chain = markovify.combine(chains)
+        self.RE_MESSAGE_MATCH = '^[a-zA-Z0-9\s\.,“”!\?/\(\)]+$'
+
     @commands.Cog.listener()
     async def on_message(self, message):
         if message.author.id == self.bot.user.id:
@@ -249,3 +260,25 @@ class ShitpostingHandler(commands.Cog, name='Shitposting'):
         -replyto: Optional; the message to reply to. Usually specified by ID.
         """
         await channel.send(" ".join(flags.text), allowed_mentions=mute_role_and_everyone_pings, reference=flags.replyto)
+
+    @commands.command(name="markov", aliases=['m'])
+    @commands.check(cogs.permissionshandler.PermissionsHandler.owner_check)
+    async def markov(self, ctx, flags:utils.MarkovFlags):
+        """Produce random text"""
+        text = await self._scrape_text(ctx.channel, limit=flags.limit)
+        chatchain = self._make_chain(text)
+        netchain = markovify.combine([self.pol_chain, chatchain], [0.5, flags.weight])
+        if flags.dump is not None:
+            await flags.dump.send(content=(netchain.make_sentence() or "Failed to generate a sentence"))
+            return
+        else:
+            await ctx.send(content=(netchain.make_sentence() or "Failed to generate a sentence"))
+
+    async def _scrape_text(self, channel, **kwargs):
+        """Make a corpus of text suitable for a chain"""
+        valid_params = ["limit"] # allowed keywords
+        params = {k : v for k, v in kwargs.items() if k in valid_params and v is not None} # sanitizes kwargs
+        return "\n".join([message.content async for message in channel.history(limit=params.get("limit", 500)) if (re.match(self.RE_MESSAGE_MATCH, message.content) and not message.author.bot)])
+    
+    def _make_chain(self, text):
+        return markovify.NewlineText(text, state_size=2)
