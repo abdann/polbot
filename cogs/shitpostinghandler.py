@@ -22,7 +22,7 @@ class ShitpostingHandler(commands.Cog, name='Shitposting'):
         for currentdirname, dirnames, filenames in walk(Path("corpi")):
             for filename in filenames:
                 with open((Path("corpi") / filename).resolve()) as f:
-                    chains.append(markovify.Text(f, retain_original=True))
+                    chains.append(markovify.NewlineText(f, retain_original=True))
         self.pol_chain = markovify.combine(chains)
         self.RE_MESSAGE_MATCH = '^[a-zA-Z0-9\s\.,“”!\?/\(\)]+$'
 
@@ -278,7 +278,7 @@ class ShitpostingHandler(commands.Cog, name='Shitposting'):
         """Make a corpus of text suitable for a chain"""
         valid_params = ["limit"] # allowed keywords
         params = {k : v for k, v in kwargs.items() if k in valid_params and v is not None} # sanitizes kwargs
-        return ".".join([message.content async for message in channel.history(limit=params.get("limit", 500)) if (re.match(self.RE_MESSAGE_MATCH, message.content) and not message.author.bot)])
+        return "\n".join([message.content async for message in channel.history(limit=params.get("limit", 500)) if (re.match(self.RE_MESSAGE_MATCH, message.content) and not message.author.bot)])
     
     def _make_chain(self, text):
-        return markovify.Text(text)
+        return markovify.NewlineText(text)
