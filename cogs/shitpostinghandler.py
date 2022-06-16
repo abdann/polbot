@@ -269,10 +269,10 @@ class ShitpostingHandler(commands.Cog, name='Shitposting'):
         chatchain = self._make_chain(text)
         netchain = markovify.combine([self.pol_chain, chatchain], [flags.dweight, flags.cweight])
         if flags.dump is not None:
-            await flags.dump.send(content=(netchain.make_sentence() or "Failed to generate a sentence"))
+            await flags.dump.send(content=(netchain.make_sentence(tries=100) or "Failed to generate a sentence"))
             return
         else:
-            await ctx.send(content=(netchain.make_sentence() or "Failed to generate a sentence"))
+            await ctx.send(content=(netchain.make_sentence(tries=100) or "Failed to generate a sentence"))
 
     async def _scrape_text(self, channel, **kwargs):
         """Make a corpus of text suitable for a chain"""
