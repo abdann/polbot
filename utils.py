@@ -21,7 +21,8 @@ class SayFlags(commands.FlagConverter, delimiter=' ', prefix='-'):
 class MarkovFlags(commands.FlagConverter, delimiter=' ', prefix='-'):
     dump: discord.TextChannel = commands.flag(name="dump", default=None)
     limit: int = 500
-    weight: float = 10
+    cweight: float = 10
+    dweight: float = 0.0001
 
 def strtobool(string:str):
     """Parses a simple string as 'True' or 'False' """
