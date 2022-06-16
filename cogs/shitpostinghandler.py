@@ -267,7 +267,7 @@ class ShitpostingHandler(commands.Cog, name='Shitposting'):
         """Produce random text"""
         text = await self._scrape_text(ctx.channel, limit=flags.limit)
         chatchain = self._make_chain(text)
-        netchain = markovify.combine([self.pol_chain, chatchain], [flags.dweight, flags.weight])
+        netchain = markovify.combine([self.pol_chain, chatchain], [flags.dweight, flags.cweight])
         if flags.dump is not None:
             await flags.dump.send(content=(netchain.make_sentence() or "Failed to generate a sentence"))
             return
