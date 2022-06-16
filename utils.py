@@ -18,6 +18,11 @@ class SayFlags(commands.FlagConverter, delimiter=' ', prefix='-'):
     replyto: discord.Message = commands.flag(name='replyto', default=None)
     text: typing.List[str]
 
+class MarkovFlags(commands.FlagConverter, delimiter=' ', prefix='-'):
+    dump: discord.TextChannel = commands.flag(name="dump", default=None)
+    limit: int = 500
+    weight: float = 10
+
 def strtobool(string:str):
     """Parses a simple string as 'True' or 'False' """
     if string.casefold() == 'true':
