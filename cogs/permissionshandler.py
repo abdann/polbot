@@ -44,3 +44,6 @@ class PermissionsHandler(commands.Cog, name='Permissions'):
     def owner_check(cls, ctx):
             """Checks if a command invoker is the owner"""
             return True if (ctx.author.id == owner_id) else False
+
+def markov_command_running(ctx):
+    return not ctx.bot.making_text
