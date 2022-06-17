@@ -198,6 +198,9 @@ class ShitpostingHandler(commands.Cog, name='Shitposting'):
                 shitpost = "@everyone" #easter egg lol
             await message.channel.send(shitpost[:2000], allowed_mentions=mute_all_pings) #limits to 2000 characters (discord limit)
     
+    async def _post_random_text(self, message:discord.Message, params):
+        pass
+
     async def _post_listener(self, message, params, method):
         """Runs a shitposting method if the probability chance is met"""
         if random()*100 < params.get("shitpost_probability"):
@@ -262,9 +265,16 @@ class ShitpostingHandler(commands.Cog, name='Shitposting'):
         await channel.send(" ".join(flags.text), allowed_mentions=mute_role_and_everyone_pings, reference=flags.replyto)
 
     @commands.command(name="markov", aliases=['m'])
-    @commands.check(cogs.permissionshandler.PermissionsHandler.owner_check)
+    @commands.check(cogs.permissionshandler.PermissionsHandler.moderator_check)
     async def markov(self, ctx, flags:utils.MarkovFlags):
-        """Produce random text"""
+        """Produce random text produced from political theory and the chat. This is a beta feature.
+        
+        valid flags:
+        -tries: Optional; number of times to attempt to start a chain. Default 100 if unspecified.
+        -limit: Optional; number of messages to read in the current channel, starting from the current message. Default 5000 if unspecified.
+        -cweight: Optional; how much weight to attribute to the chat messages. Default 100 if unspecified.
+        -dweight: Optional; how much weight to attribute to the political theory. Default 1 if unspecified.
+        """
         text = await self._scrape_text(ctx.channel, limit=flags.limit)
         chatchain = self._make_chain(text)
         netchain = markovify.combine([self.pol_chain, chatchain], [flags.dweight, flags.cweight])
@@ -278,7 +288,7 @@ class ShitpostingHandler(commands.Cog, name='Shitposting'):
         """Make a corpus of text suitable for a chain"""
         valid_params = ["limit"] # allowed keywords
         params = {k : v for k, v in kwargs.items() if k in valid_params and v is not None} # sanitizes kwargs
-        return "\n".join([message.content async for message in channel.history(limit=params.get("limit", 500)) if (re.match(self.RE_MESSAGE_MATCH, message.content) and not message.author.bot)])
+        return "\n".join([message.content async for message in channel.history(limit=params.get("limit")) if (re.match(self.RE_MESSAGE_MATCH, message.content) and not message.author.bot)])
     
     def _make_chain(self, text):
         return markovify.NewlineText(text)
