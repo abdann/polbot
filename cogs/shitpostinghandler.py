@@ -18,6 +18,7 @@ class ShitpostingHandler(commands.Cog, name='Shitposting'):
     """Handles all shitposting commands and features of the bot"""
     def __init__(self, bot):
         self.bot = bot
+        self.bot.making_text = False
         chains=[]
         for currentdirname, dirnames, filenames in walk(Path("corpi")):
             for filename in filenames:
