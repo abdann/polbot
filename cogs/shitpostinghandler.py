@@ -266,6 +266,7 @@ class ShitpostingHandler(commands.Cog, name='Shitposting'):
 
     @commands.command(name="markov", aliases=['m'])
     @commands.check(cogs.permissionshandler.PermissionsHandler.moderator_check)
+    @commands.check(cogs.permissionshandler.markov_command_running)
     async def markov(self, ctx, flags:utils.MarkovFlags):
         """Produce random text produced from political theory and the chat. This is a beta feature.
         
@@ -275,14 +276,17 @@ class ShitpostingHandler(commands.Cog, name='Shitposting'):
         -cweight: Optional; how much weight to attribute to the chat messages. Default 100 if unspecified.
         -dweight: Optional; how much weight to attribute to the political theory. Default 1 if unspecified.
         """
-        text = await self._scrape_text(ctx.channel, limit=flags.limit)
-        chatchain = self._make_chain(text)
-        netchain = markovify.combine([self.pol_chain, chatchain], [flags.dweight, flags.cweight])
-        if flags.dump is not None:
-            await flags.dump.send(content=(netchain.make_sentence(tries=flags.tries) or "Failed to generate a sentence"))
-            return
-        else:
-            await ctx.send(content=(netchain.make_sentence(tries=flags.tries) or "Failed to generate a sentence"))
+        async with ctx.channel.typing():
+            self.bot.making_text = True
+            text = await self._scrape_text(ctx.channel, limit=flags.limit)
+            chatchain = self._make_chain(text)
+            netchain = markovify.combine([self.pol_chain, chatchain], [flags.dweight, flags.cweight])
+            if flags.dump is not None:
+                await flags.dump.send(content=(netchain.make_sentence(tries=flags.tries) or "Failed to generate a sentence"))
+                return
+            else:
+                await ctx.send(content=(netchain.make_sentence(tries=flags.tries) or "Failed to generate a sentence"))
+            self.bot.making_text = False
 
     async def _scrape_text(self, channel, **kwargs):
         """Make a corpus of text suitable for a chain"""
