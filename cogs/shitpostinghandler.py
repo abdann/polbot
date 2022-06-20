@@ -316,7 +316,8 @@ class ShitpostingHandler(commands.Cog, name='Shitposting'):
             for _, _, filenames in walk(Path("corpi")):
                 for filename in filenames:
                     async with aiofiles.open((Path("corpi") / filename).resolve(), "r") as f:
-                        chains.append(markovify.NewlineText(f, retain_original=True))
+                        text = f.read()
+                    chains.append(markovify.NewlineText(text))
             pol_chain = markovify.combine(chains)
             async with aiofiles.open((Path("corpi") / "politicalchain.json").resolve(), "w") as f:
                 json.dump(pol_chain.to_json(), f)
