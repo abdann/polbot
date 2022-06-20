@@ -8,7 +8,6 @@ import markovify
 import utils
 from os import walk
 from pathlib import Path
-import json
 import aiofiles
 
 
@@ -206,7 +205,8 @@ class ShitpostingHandler(commands.Cog, name='Shitposting'):
                 text = await self._scrape_text(message.channel, limit=1000)
                 chatchain = markovify.NewlineText(text)
                 async with aiofiles.open((Path("corpi") / "politicalchain.json").resolve(), "r") as f:
-                    polchain = markovify.NewlineText.from_json(json.load(f))
+                    text = await f.read()
+                polchain = markovify.NewlineText.from_json(text)
                 netchain = markovify.combine([polchain, chatchain], [1, 100])
                 await message.channel.send(content=netchain.make_sentence(tries=100))
             self.bot.making_text = False
@@ -291,7 +291,8 @@ class ShitpostingHandler(commands.Cog, name='Shitposting'):
             text = await self._scrape_text(ctx.channel, limit=flags.limit)
             chatchain = markovify.NewlineText(text)
             async with aiofiles.open((Path("corpi") / "politicalchain.json").resolve(), "r") as f:
-                polchain = markovify.NewlineText.from_json(json.load(f))
+                text = await f.read()
+            polchain = markovify.NewlineText.from_json(text)
             netchain = markovify.combine([polchain, chatchain], [flags.dweight, flags.cweight])
             if flags.dump is not None:
                 await flags.dump.send(content=(netchain.make_sentence(tries=flags.tries) or "Failed to generate a sentence"))
@@ -316,9 +317,10 @@ class ShitpostingHandler(commands.Cog, name='Shitposting'):
             for _, _, filenames in walk(Path("corpi")):
                 for filename in filenames:
                     async with aiofiles.open((Path("corpi") / filename).resolve(), "r") as f:
-                        text = f.read()
+                        text = await f.read()
                     chains.append(markovify.NewlineText(text))
             pol_chain = markovify.combine(chains)
+            text = pol_chain.to_json()
             async with aiofiles.open((Path("corpi") / "politicalchain.json").resolve(), "w") as f:
-                json.dump(pol_chain.to_json(), f)
+                await f.write(text)
         await ctx.channel.send(content="Finished initializing corpus")
