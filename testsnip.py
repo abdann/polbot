@@ -92,8 +92,22 @@
 # string2 = "8"
 # hash2 = hashlib.md5(string2.encode()).hexdigest()
 # print(hash1 == hash2)
-import hashlib
-def hasher(content):
-    return hashlib.md5(content.encode()).hexdigest()
+# import hashlib
+# def hasher(content):
+#     return hashlib.md5(content.encode()).hexdigest()
 
-print(hasher("https://tenor.com/view/no-maidens-varre-elden-ring-varre-maidenless-elden-ring-maidens-gif-25161039"))
+# print(hasher("https://tenor.com/view/no-maidens-varre-elden-ring-varre-maidenless-elden-ring-maidens-gif-25161039"))
+
+from os import walk
+from pathlib import Path
+
+import markovify
+test = """Fascism is therefore opposed to all individualistic abstractions based on eighteenth century materialism; and it is opposed to all Jacobinistic utopias and innovations. It does not believe in the possibility of "happiness" on earth as conceived by the economistic literature of the XVIIIth century, and it therefore rejects the theological notion that at some future time the human family will secure a final settlement of all its difficulties. This notion runs counter to experience which teaches that life is in continual flux and in process of evolution. """
+print("\n".join(markovify.split_into_sentences(test)))
+
+for currentdirname, dirnames, filenames in walk(Path("corpi")):
+    for filename in filenames:
+        with open((Path("corpi") / filename).resolve(), "r") as f:
+            text_newlined = "\n".join(markovify.split_into_sentences(f.read()))
+        with open((Path("corpi") / filename).resolve(), "w") as f:
+            f.write(text_newlined)

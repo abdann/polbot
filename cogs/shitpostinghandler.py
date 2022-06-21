@@ -4,7 +4,11 @@ import cogs.permissionshandler
 from discord.ext import commands
 from random import random, sample
 import re
+import markovify
 import utils
+from os import walk
+from pathlib import Path
+import aiofiles
 
 
 punctuation = [".", "?", "!"]
@@ -15,6 +19,9 @@ class ShitpostingHandler(commands.Cog, name='Shitposting'):
     """Handles all shitposting commands and features of the bot"""
     def __init__(self, bot):
         self.bot = bot
+        self.bot.making_text = False
+        self.RE_MESSAGE_MATCH = '^[a-zA-Z0-9\s\.,“”!\?/\(\)]+$'
+
     @commands.Cog.listener()
     async def on_message(self, message):
         if message.author.id == self.bot.user.id:
@@ -173,20 +180,37 @@ class ShitpostingHandler(commands.Cog, name='Shitposting'):
                         return
                     await message.channel.send(polder_message.content, allowed_mentions=mute_all_pings)
     
-    async def _post_random_text(self, message:discord.Message, params):
-        """Creates a random piece of text from the 20 previous messages in chat. Filters links and mentions, and limits the output to 2000 characters (discord limit)"""
-        if params.get("random_text_posts"):
-            messages = [message.content async for message in message.channel.history(limit=20)] #Get list of 20 most recent message contents
-            words_as_string = ' '.join(messages) # Separate into list of words
-            words = re.sub(r'http\S+', '', words_as_string) #filter out links
-            words = words.split()
-            shitpost = sample(words, int(random()*len(words)/2)) #Restricts the sample of words to be at most half the length of words
-            shitpost = " ".join(shitpost) # combine them into a single string
-            shitpost = self._strip_trailing_by_punc(shitpost)
-            if len(shitpost) == 0:
-                shitpost = "@everyone" #easter egg lol
-            await message.channel.send(shitpost[:2000], allowed_mentions=mute_all_pings) #limits to 2000 characters (discord limit)
+    # async def _post_random_text(self, message:discord.Message, params):
+    #     """Creates a random piece of text from the 20 previous messages in chat. Filters links and mentions, and limits the output to 2000 characters (discord limit)"""
+        # if params.get("random_text_posts"):
+        #     messages = [message.content async for message in message.channel.history(limit=20)] #Get list of 20 most recent message contents
+        #     words_as_string = ' '.join(messages) # Separate into list of words
+        #     words = re.sub(r'http\S+', '', words_as_string) #filter out links
+        #     words = words.split()
+        #     shitpost = sample(words, int(random()*len(words)/2)) #Restricts the sample of words to be at most half the length of words
+        #     shitpost = " ".join(shitpost) # combine them into a single string
+        #     shitpost = self._strip_trailing_by_punc(shitpost)
+        #     if len(shitpost) == 0:
+        #         shitpost = "@everyone" #easter egg lol
+        #     await message.channel.send(shitpost[:2000], allowed_mentions=mute_all_pings) #limits to 2000 characters (discord limit)
     
+    async def _post_random_text(self, message:discord.Message, params):
+        """Make random text. Default params: scrape 1000 messages, weight 100:1 chat to theory, try 100 times"""
+        if params.get("random_text_posts"):
+            if self.bot.making_text:
+                await message.channel.send(content="Currently generating text, please try again later", delete_after=5)
+                return
+            self.bot.making_text = True
+            async with message.channel.typing():
+                text = await self._scrape_text(message.channel, limit=1000)
+                chatchain = markovify.NewlineText(text)
+                async with aiofiles.open((Path("corpi") / "politicalchain.json").resolve(), "r") as f:
+                    text = await f.read()
+                polchain = markovify.NewlineText.from_json(text)
+                netchain = markovify.combine([polchain, chatchain], [1, 100])
+                await message.channel.send(content=netchain.make_sentence(tries=100))
+            self.bot.making_text = False
+
     async def _post_listener(self, message, params, method):
         """Runs a shitposting method if the probability chance is met"""
         if random()*100 < params.get("shitpost_probability"):
@@ -249,3 +273,54 @@ class ShitpostingHandler(commands.Cog, name='Shitposting'):
         -replyto: Optional; the message to reply to. Usually specified by ID.
         """
         await channel.send(" ".join(flags.text), allowed_mentions=mute_role_and_everyone_pings, reference=flags.replyto)
+
+    @commands.command(name="markov", aliases=['m'])
+    @commands.check(cogs.permissionshandler.PermissionsHandler.moderator_check)
+    @commands.check(cogs.permissionshandler.markov_command_running)
+    async def markov(self, ctx, flags:utils.MarkovFlags):
+        """Produce random text produced from political theory and the chat. This is a beta feature.
+        
+        valid flags:
+        -tries: Optional; number of times to attempt to start a chain. Default 100 if unspecified.
+        -limit: Optional; number of messages to read in the current channel, starting from the current message. Default 5000 if unspecified.
+        -cweight: Optional; how much weight to attribute to the chat messages. Default 100 if unspecified.
+        -dweight: Optional; how much weight to attribute to the political theory. Default 1 if unspecified.
+        """
+        async with ctx.channel.typing():
+            self.bot.making_text = True
+            text = await self._scrape_text(ctx.channel, limit=flags.limit)
+            chatchain = markovify.NewlineText(text)
+            async with aiofiles.open((Path("corpi") / "politicalchain.json").resolve(), "r") as f:
+                text = await f.read()
+            polchain = markovify.NewlineText.from_json(text)
+            netchain = markovify.combine([polchain, chatchain], [flags.dweight, flags.cweight])
+            if flags.dump is not None:
+                await flags.dump.send(content=(netchain.make_sentence(tries=flags.tries) or "Failed to generate a sentence"))
+                return
+            else:
+                await ctx.send(content=(netchain.make_sentence(tries=flags.tries) or "Failed to generate a sentence"))
+        self.bot.making_text = False
+
+    async def _scrape_text(self, channel, **kwargs):
+        """Make a corpus from chat of text suitable for a chain"""
+        valid_params = ["limit"] # allowed keywords
+        params = {k : v for k, v in kwargs.items() if k in valid_params and v is not None} # sanitizes kwargs
+        return "\n".join([message.content async for message in channel.history(limit=params.get("limit")) if (re.match(self.RE_MESSAGE_MATCH, message.content) and not message.author.bot)])
+    
+    @commands.command(name='makecorpus', aliases=['mc'])
+    @commands.check(cogs.permissionshandler.PermissionsHandler.owner_check)
+    async def initialize_corpus(self, ctx):
+        """Initializes the political theory corpus and saves to JSON."""
+        await ctx.channel.send(content="Initializing corpus")
+        async with ctx.channel.typing():
+            chains=[]
+            for _, _, filenames in walk(Path("corpi")):
+                for filename in filenames:
+                    async with aiofiles.open((Path("corpi") / filename).resolve(), "r") as f:
+                        text = await f.read()
+                    chains.append(markovify.NewlineText(text))
+            pol_chain = markovify.combine(chains)
+            text = pol_chain.to_json()
+            async with aiofiles.open((Path("corpi") / "politicalchain.json").resolve(), "w") as f:
+                await f.write(text)
+        await ctx.channel.send(content="Finished initializing corpus")
