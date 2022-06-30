@@ -157,11 +157,10 @@ class ReactionHandler(commands.Cog, name='Reaction'):
 
     async def _string_search(self, message):
         """Searches a string for trigger phrases. Returns a tuple of lists, where the first is the list of reactions to add and the second is the list of messages to send"""
-        content = message.content.casefold()
-        reaction_triggers = await self.bot.servers.get_emoji_reaction_triggers(message.guild)
-        reactions_to_add = [reaction for trigger_phrase, reaction in reaction_triggers.items() if trigger_phrase in content]
         if await self.bot.servers.find_in_shitposting_channels(message.guild, message.channel.id):
+            content = message.content.casefold()
+            reaction_triggers = await self.bot.servers.get_emoji_reaction_triggers(message.guild)
+            reactions_to_add = [reaction for trigger_phrase, reaction in reaction_triggers.items() if trigger_phrase in content]
             text_triggers = await self.bot.servers.get_text_triggers(message.guild)
             messages_to_send = [text_to_send for trigger_phrase, text_to_send in text_triggers.items() if trigger_phrase in content]
             return (reactions_to_add, messages_to_send)
-        return (reactions_to_add, list())
