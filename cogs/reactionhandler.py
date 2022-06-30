@@ -45,20 +45,31 @@ class ReactionHandler(commands.Cog, name='Reaction'):
 
     @commands.command(name="addtexttrigger", aliases=['addtext'])
     @commands.check(cogs.permissionshandler.PermissionsHandler.executive_moderator_check)
-    async def add_text_trigger(self, ctx, trigger_phrase:str, text:str):
+    async def add_text_trigger(self, ctx, *, flags: utils.TextTriggerFlags):
         """[Executive Moderator command] Adds a text trigger.
-        When the trigger phrase is detected, the bot sends a message containing the text."""
-        if await self.bot.servers.add_text_trigger(ctx.guild, trigger_phrase, text):
+        When the trigger phrase is detected, the bot sends a message containing the text.
+        
+        valid flags:
+        -trigger: Required; The trigger phrase to respond to.
+        -text: Required; The text to send.
+        """
+        if await self.bot.servers.add_text_trigger(ctx.guild, flags.trigger, flags.text):
             await ctx.reply("Text trigger added!")
             return
         await ctx.reply("Text trigger is already present.")
 
     @commands.command(name="removetexttrigger", aliases=['rmtext'])
     @commands.check(cogs.permissionshandler.PermissionsHandler.executive_moderator_check)
-    async def remove_text_trigger(self, ctx, trigger_phrase:str, text:str):
+    async def remove_text_trigger(self, ctx, *, flags: utils.TextTriggerFlags):
         """[Executive Moderator command] Removes a text trigger.
-        When the trigger phrase is detected, the bot sends a message containing the text."""
-        if await self.bot.servers.remove_text_trigger(ctx.guild, trigger_phrase=trigger_phrase, message=text):
+        When the trigger phrase is detected, the bot sends a message containing the text.
+        
+        valid flags:
+        -trigger: Required; The trigger phrase to respond to.
+        -text: Required; The text to send.
+        """
+        
+        if await self.bot.servers.remove_text_trigger(ctx.guild, trigger_phrase=flags.trigger, message=flags.text):
             await ctx.reply("Text trigger removed")
             return
         await ctx.reply("Text trigger not found.")
