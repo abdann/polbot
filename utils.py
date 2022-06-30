@@ -1,3 +1,4 @@
+from sys import prefix
 from typing import Optional
 import typing
 import emojis
@@ -24,6 +25,10 @@ class MarkovFlags(commands.FlagConverter, delimiter=' ', prefix='-'):
     cweight: float = 100
     dweight: float = 1
     tries: int = 100
+
+class TextTriggerFlags(commands.FlagConverter, delimiter=' ', prefix='-'):
+    trigger: str
+    text: str
 
 def strtobool(string:str):
     """Parses a simple string as 'True' or 'False' """
