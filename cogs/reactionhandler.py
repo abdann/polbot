@@ -53,7 +53,7 @@ class ReactionHandler(commands.Cog, name='Reaction'):
         -trigger: Required; The trigger phrase to respond to.
         -text: Required; The text to send.
         """
-        if await self.bot.servers.add_text_trigger(ctx.guild, flags.trigger, flags.text):
+        if await self.bot.servers.add_text_trigger(ctx.guild, flags.trigger.casefold(), flags.text):
             await ctx.reply("Text trigger added!")
             return
         await ctx.reply("Text trigger is already present.")
@@ -69,7 +69,7 @@ class ReactionHandler(commands.Cog, name='Reaction'):
         -text: Required; The text to send.
         """
         
-        if await self.bot.servers.remove_text_trigger(ctx.guild, trigger_phrase=flags.trigger, message=flags.text):
+        if await self.bot.servers.remove_text_trigger(ctx.guild, trigger_phrase=flags.trigger.casefold(), message=flags.text):
             await ctx.reply("Text trigger removed")
             return
         await ctx.reply("Text trigger not found.")
@@ -84,6 +84,16 @@ class ReactionHandler(commands.Cog, name='Reaction'):
             return
         await ctx.reply('\n'.join([f'{key}: {value}' for key, value in text_triggers.items()]))
 
+    @commands.command(name="cleartexttriggers", aliases=['clearalltexts'])
+    @commands.check(cogs.permissionshandler.PermissionsHandler.executive_moderator_check)
+    async def clear_text_triggers(self, ctx):
+        """Clears all currently set text triggers. This is irreversible."""
+        async with ctx.channel.typing():
+            text_triggers = await self.bot.servers.get_text_triggers(ctx.guild)
+            for trigger_phrase, text in text_triggers.items():
+                await self.bot.servers.remove_text_trigger(ctx.guild, trigger_phrase=trigger_phrase.casefold(), message=text)
+        await ctx.reply("All text triggers have been removed.")
+        
     @commands.Cog.listener()
     async def on_message(self, message):
         if message.author.id == self.bot.user.id or message.author.bot:
@@ -97,11 +107,6 @@ class ReactionHandler(commands.Cog, name='Reaction'):
         if message.author.id == 731659389550985277:
             sussy = discord.utils.get(message.guild.emojis, name="sus")
             await message.add_reaction(sussy)
-
-    # async def listen_reactions(self, message, react_emojis):
-    #     if len(react_emojis) != 0:
-    #         coros = [self._coro_react(message, react_emoji) for react_emoji in react_emojis]
-    #         await asyncio.gather(*coros)
     
     async def _listen_reactions(self, message, reactions_to_add, messages_to_send):
         if len(reactions_to_add) != 0:
@@ -120,7 +125,7 @@ class ReactionHandler(commands.Cog, name='Reaction'):
     async def _string_search(self, message):
         """Searches a string for trigger phrases. Returns a tuple of lists, where the first is the list of reactions to add and the second is the list of messages to send"""
         if await self.bot.servers.find_in_shitposting_channels(message.guild, message.channel.id):
-            content = message.content.casefold()
+            content = message.content.casefold().split()
             reaction_triggers = await self.bot.servers.get_emoji_reaction_triggers(message.guild)
             reactions_to_add = [reaction for trigger_phrase, reaction in reaction_triggers.items() if trigger_phrase in content]
             text_triggers = await self.bot.servers.get_text_triggers(message.guild)
