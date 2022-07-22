@@ -20,7 +20,7 @@ class ModerationHandler(commands.Cog, name='Moderation'):
         title="""You have been automatically banned from Political Compass Memes because your account was younger than the minimum account age.""")
 
     @commands.command(name="stoppolbot", aliases=['stop'])
-    @commands.check(cogs.permissionshandler.PermissionsHandler.admin_check)
+    @commands.check(cogs.permissionshandler.PermissionsHandler.owner_check)
     async def stop_pol_bot(self, ctx):
         """[Admin command] Stops the monster when he's gone off the deep end (Shuts down the bot gracefully)"""
         await ctx.reply("Attempting shutdown. Further bot actions beyond this message indicate a failure to halt")
