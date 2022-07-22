@@ -72,6 +72,9 @@ class ShitpostingHandler(commands.Cog, name='Shitposting'):
     async def remove_polder_post(self, ctx):
         """[Default Mod command] When this command is run in a reply to a polder post posted by PolBot, it removes the polder post from PolBot's memory."""
         params = await self.bot.servers.get_server_parameters(ctx.guild, "polder_channel_id")
+        if ctx.message.reference is None:
+            await ctx.reply("You did not reply to a message while running this command!")
+            return
         posted_message = await ctx.channel.fetch_message(ctx.message.reference.message_id)
         if ctx.channel.id == params.get("polder_channel_id"): #if we are in polder channel
             if posted_message.author.id != self.bot.user.id: #If the posted message to remove was not posted by the bot
