@@ -9,6 +9,7 @@ import utils
 from os import walk
 from pathlib import Path
 import aiofiles
+import asyncio
 
 
 punctuation = [".", "?", "!"]
@@ -182,21 +183,7 @@ class ShitpostingHandler(commands.Cog, name='Shitposting'):
                     except discord.HTTPException:
                         return
                     await message.channel.send(polder_message.content, allowed_mentions=mute_all_pings)
-    
-    # async def _post_random_text(self, message:discord.Message, params):
-    #     """Creates a random piece of text from the 20 previous messages in chat. Filters links and mentions, and limits the output to 2000 characters (discord limit)"""
-        # if params.get("random_text_posts"):
-        #     messages = [message.content async for message in message.channel.history(limit=20)] #Get list of 20 most recent message contents
-        #     words_as_string = ' '.join(messages) # Separate into list of words
-        #     words = re.sub(r'http\S+', '', words_as_string) #filter out links
-        #     words = words.split()
-        #     shitpost = sample(words, int(random()*len(words)/2)) #Restricts the sample of words to be at most half the length of words
-        #     shitpost = " ".join(shitpost) # combine them into a single string
-        #     shitpost = self._strip_trailing_by_punc(shitpost)
-        #     if len(shitpost) == 0:
-        #         shitpost = "@everyone" #easter egg lol
-        #     await message.channel.send(shitpost[:2000], allowed_mentions=mute_all_pings) #limits to 2000 characters (discord limit)
-    
+
     async def _post_random_text(self, message:discord.Message, params):
         """Make random text. Default params: scrape 1000 messages, weight 100:1 chat to theory, try 100 times"""
         if params.get("random_text_posts"):
@@ -277,6 +264,18 @@ class ShitpostingHandler(commands.Cog, name='Shitposting'):
         """
         await channel.send(" ".join(flags.text), allowed_mentions=mute_role_and_everyone_pings, reference=flags.replyto)
 
+    @commands.command(name="react")
+    @commands.check(cogs.permissionshandler.PermissionsHandler.moderator_check)
+    async def say(self, ctx, channel:discord.TextChannel, *, flags: utils.ReactFlags):
+        """
+        React to messages with the bot.
+        channel: Required; the channel to react in. Can be a # reference or an ID
+        -message: Required; the message to react to.
+        -reactions: Required; the reaction(s) to apply to the specified message. This can be multiple, or just one.
+        """
+        reactions = [self._react(flags.message, reaction) for reaction in flags.reactions]
+        await asyncio.gather(*reactions)
+
     @commands.command(name="markov", aliases=['m'])
     @commands.check(cogs.permissionshandler.PermissionsHandler.moderator_check)
     @commands.check(cogs.permissionshandler.markov_command_running)
@@ -327,3 +326,6 @@ class ShitpostingHandler(commands.Cog, name='Shitposting'):
             async with aiofiles.open((Path("corpi") / "politicalchain.json").resolve(), "w") as f:
                 await f.write(text)
         await ctx.channel.send(content="Finished initializing corpus")
+    
+    async def _react(self, message: discord.Message, reaction:utils.Emoji):
+        await message.add_reaction(reaction)
