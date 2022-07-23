@@ -19,6 +19,10 @@ class SayFlags(commands.FlagConverter, delimiter=' ', prefix='-'):
     replyto: discord.Message = commands.flag(name='replyto', default=None)
     text: typing.List[str]
 
+class ReactFlags(commands.FlagConverter, delimiter=' ', prefix='-'):
+    message: discord.Message
+    reactions: typing.Tuple[Emoji, ...]
+
 class MarkovFlags(commands.FlagConverter, delimiter=' ', prefix='-'):
     dump: discord.TextChannel = commands.flag(name="dump", default=None)
     limit: int = 5000
