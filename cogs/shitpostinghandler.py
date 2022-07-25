@@ -266,7 +266,7 @@ class ShitpostingHandler(commands.Cog, name='Shitposting'):
 
     @commands.command(name="react")
     @commands.check(cogs.permissionshandler.PermissionsHandler.moderator_check)
-    async def say(self, ctx, channel:discord.TextChannel, *, flags: utils.ReactFlags):
+    async def react(self, ctx, channel:discord.TextChannel, *, flags: utils.ReactFlags):
         """
         React to messages with the bot.
         channel: Required; the channel to react in. Can be a # reference or an ID
