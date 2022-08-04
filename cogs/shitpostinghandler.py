@@ -280,8 +280,8 @@ class ShitpostingHandler(commands.Cog, name='Shitposting'):
     @commands.command(name="impact", aliases=['i', 'I'])
     @commands.check(cogs.permissionshandler.markov_command_running)
     async def impact(self, ctx: commands.Context, *, member: typing.Optional[discord.Member]): 
-        """Imitates the impact command from the GenAI discord bot. In summary, this applies a random caption (made via the semi-coherent markov chain feature) to a user's profile picture.
-        When provided with an argument, attempts to parse it to a user on that server. If it can not, it selects a random user instead. If no argument is provided, it uses the command caller's user."""
+        """Imitates the impact command from the GenAI discord bot. In summary, this applies a random caption (made via the semi-coherent markov chain feature) to a user's profile picture OR attached image.
+        When provided with an argument, attempts to parse it to a user on that server. If it can not, it selects a random user instead."""
         if self.bot.making_text:
             await ctx.send(content="Currently generating text, please try again later", delete_after=5)
             return
