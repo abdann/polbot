@@ -8,10 +8,13 @@ class CommandErrHandler(commands.Cog):
         self.bot = bot
     
     @commands.Cog.listener()
-    async def on_command_error(self, ctx, error):
+    async def on_command_error(self, ctx: commands.Context, error):
         if isinstance(error, commands.CommandNotFound):
             await ctx.reply('I do not know that command.')
         if isinstance(error, commands.errors.CheckFailure):
+            if ctx.command.name == "impact":
+                await ctx.send(content="Currently generating text, please try again later", delete_after=5)
+                return
             await ctx.reply('You do not have the required privileges to run that command!')
         if isinstance(error, commands.errors.MissingRequiredArgument):
             await ctx.reply(f'Insufficient arguments provided. Please type {self.bot.command_prefix} help {ctx.command.name} to see the correct usage.')
