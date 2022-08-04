@@ -287,12 +287,17 @@ class ShitpostingHandler(commands.Cog, name='Shitposting'):
             return
         self.bot.making_text = True
         async with ctx.channel.typing():
-            if member is None: #This can be true if the simplistic member converter fails, or multiple members are passed
+            image_attachment:typing.Union[discord.Attachment, None] = discord.utils.find(lambda x: x.content_type.startswith("image"), ctx.message.attachments)
+            if image_attachment is not None:
+                image = image_attachment
+            elif member is not None: #This can be false if the simplistic member converter fails, or multiple members are passed
+                image = member.display_avatar.with_static_format("png") #Get's the user's profile picture (preferably guild-specific profile picture, if available) and makes sure it is a static file.
+            else:
                 member = choice(ctx.guild.members)
-            profile_picture = member.display_avatar.with_static_format("png") #Get's the user's profile picture (preferably guild-specific profile picture, if available) and makes sure it is a static file.
+                image = member.display_avatar.with_static_format("png")
             chat_corpus = await self._scrape_text(ctx.channel, limit=1000) #collects corpus of chat text
             caption = await self._generate_text(chat_corpus) #generates standard semi-coherent text
-            image = await utils.caption(profile_picture, " ".join(caption).upper()) #captions profile picture with caption made in previous line
+            image = await utils.caption(image, " ".join(caption).upper()) #captions profile picture with caption made in previous line
             await ctx.send(file=image) #sends captioned profile picture
         self.bot.making_text = False
 
