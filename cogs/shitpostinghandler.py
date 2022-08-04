@@ -1,16 +1,17 @@
 from string import punctuation
 import discord
-import cogs.permissionshandler
 from discord.ext import commands
-from random import random, sample
+from random import random, choice
 import re
 import markovify
-import utils
 from os import walk
 from pathlib import Path
 import aiofiles
 import asyncio
+import typing
 
+import utils
+import cogs.permissionshandler
 
 punctuation = [".", "?", "!"]
 mute_all_pings = discord.AllowedMentions(everyone=False, users=False, roles=False, replied_user=False)
@@ -276,6 +277,26 @@ class ShitpostingHandler(commands.Cog, name='Shitposting'):
         reactions = [self._react(flags.message, reaction) for reaction in flags.reactions]
         await asyncio.gather(*reactions)
 
+    @commands.command(name="impact", aliases=['i'])
+    @commands.check(cogs.permissionshandler.markov_command_running)
+    async def impact(self, ctx: commands.Context, *, member: typing.Optional[discord.Member]): 
+        """Imitates the impact command from the GenAI discord bot. In summary, this applies a random caption (made via the semi-coherent markov chain feature) to a user's profile picture.
+        When provided with an argument, attempts to parse it to a user on that server. If it can not, it selects a random user instead. If no argument is provided, it uses the command caller's user."""
+        if self.bot.making_text:
+            await ctx.send(content="Currently generating text, please try again later", delete_after=5)
+            return
+        self.bot.making_text = True
+        async with ctx.channel.typing():
+            if member is None: #This can be true if the simplistic member converter fails, or multiple members are passed
+                member = choice(ctx.guild.members)
+            profile_picture = member.display_avatar.with_static_format("png") #Get's the user's profile picture (preferably guild-specific profile picture, if available) and makes sure it is a static file.
+            chat_corpus = await self._scrape_text(ctx.channel, limit=1000) #collects corpus of chat text
+            caption = await self._generate_text(chat_corpus) #generates standard semi-coherent text
+            image = await utils.caption(profile_picture, " ".join(caption).upper()) #captions profile picture with caption made in previous line
+            await ctx.send(file=image) #sends captioned profile picture
+        self.bot.making_text = False
+
+
     @commands.command(name="markov", aliases=['m'])
     @commands.check(cogs.permissionshandler.PermissionsHandler.moderator_check)
     @commands.check(cogs.permissionshandler.markov_command_running)
@@ -329,3 +350,13 @@ class ShitpostingHandler(commands.Cog, name='Shitposting'):
     
     async def _react(self, message: discord.Message, reaction:utils.Emoji):
         await message.add_reaction(reaction)
+    
+    async def _generate_text(self, chat_corpus:str, **kwargs) -> str:
+        """Generate text given a body of text and extra parameters"""
+        chatchain = markovify.NewlineText(chat_corpus)
+        async with aiofiles.open((Path("corpi") / "politicalchain.json").resolve(), "r") as f:
+            text = await f.read()
+        polchain = markovify.NewlineText.from_json(text)
+        netchain = markovify.combine([polchain, chatchain], [kwargs.pop("dweight", 1), kwargs.pop("cweight", 100)])
+        return netchain.make_sentence(tries=kwargs.pop("tries", 100))
+        
