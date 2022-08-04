@@ -35,17 +35,17 @@ class TextTriggerFlags(commands.FlagConverter, delimiter=' ', prefix='-'):
     trigger: str
     text: str
 
-async def caption(avatar:discord.Asset, text:str) -> discord.File:
+async def caption(image:typing.Union[discord.Asset, discord.Attachment], text:str) -> discord.File:
     """Caption a discord avatar with the given text. Returns the captioned image in bytes"""
     top_text = text[:len(text)//2]
     bottom_text = text[len(text)//2:]
     tempfile = io.BytesIO()
-    await avatar.save(tempfile, seek_begin=True)
+    await image.save(tempfile, seek_begin=True)
     captioned = make_meme(top_text, bottom_text, tempfile)
     fobj = io.BytesIO()
     captioned.save(fobj, format='png')
     fobj = io.BytesIO(fobj.getvalue())
-    captioned = discord.File(fobj, filename=f"{hash(avatar)}.png") #convert PIL Image object to discord File object
+    captioned = discord.File(fobj, filename=f"{hash(image)}.png") #convert PIL Image object to discord File object
     # os.remove(path=tempfile.resolve()) #deletes the temporary file
     return captioned #returns the captioned image
 
