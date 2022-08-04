@@ -277,7 +277,7 @@ class ShitpostingHandler(commands.Cog, name='Shitposting'):
         reactions = [self._react(flags.message, reaction) for reaction in flags.reactions]
         await asyncio.gather(*reactions)
 
-    @commands.command(name="impact", aliases=['i'])
+    @commands.command(name="impact", aliases=['i', 'I'])
     @commands.check(cogs.permissionshandler.markov_command_running)
     async def impact(self, ctx: commands.Context, *, member: typing.Optional[discord.Member]): 
         """Imitates the impact command from the GenAI discord bot. In summary, this applies a random caption (made via the semi-coherent markov chain feature) to a user's profile picture.
