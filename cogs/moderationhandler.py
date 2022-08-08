@@ -1,3 +1,4 @@
+import typing
 import discord
 import cogs.permissionshandler
 from discord.ext import commands
@@ -152,26 +153,36 @@ class ModerationHandler(commands.Cog, name='Moderation'):
             await ctx.reply('\n'.join([f"ID: {user_id} ,User: {ctx.guild.get_member(user_id)}" for user_id in whitelist]))
             return
         await ctx.reply("No whitelisted users")
-
+    
     @commands.command(name="ban")
     @commands.check(cogs.permissionshandler.PermissionsHandler.moderator_check)
-    async def ban(self, ctx, user:discord.User, *reason):
+    async def ban(self, ctx:commands.Context, user:typing.Union[discord.Member, discord.User], *reason): # must have member before user in Union to resolve correctly
+        """Bans the user"""
         reason = " ".join(reason)
-        if reason == "":
-            await ctx.reply("A reason must be supplied to ban someone")
+        if reason is None:  #enforces a reason requirement to ban someone
+            await ctx.reply("A reason must be supplied to ban someone!")
             return
-        await ctx.guild.ban(user, reason=reason, delete_message_days=0)
+        if type(user) is discord.Member: #checks if the user supplied is a member already
+            highest_author_role = ctx.author.top_role
+            highest_member_role = user.top_role
+            if (highest_member_role < highest_author_role or ctx.author == ctx.guild.owner) and user != ctx.guild.owner: #ensures that someone can not ban someone who has a higher role than they do AND that guild owners can ban people regardless of role hierarchy AND that owners can not be banned regardless of hierarchy
+                await ctx.guild.ban(user, reason=reason, delete_message_days=0) #Proceeds with ban if the person to ban is lower in the role hierarchy than the banner
+                await ctx.reply(f"Banned user {user.name}#{user.discriminator} (ID {user.id})")
+                return
+            await ctx.reply("You can not ban a member who has a higher role than you!")
+            return
+        await ctx.guild.ban(user, reason=reason, delete_message_days=0) #For the case when the user in not a member of the server
         await ctx.reply(f"Banned user {user.name}#{user.discriminator} (ID {user.id})")
-        return
     
     @commands.command(name="unban")
     @commands.check(cogs.permissionshandler.PermissionsHandler.moderator_check)
-    async def unban(self, ctx, user:discord.User, *reason):
+    async def unban(self, ctx:commands.Context, user:discord.User, *reason):
+        """Unbans a user"""
         reason = " ".join(reason)
-        if reason == "":
-            await ctx.reply("A reason must be supplied to unban someone")
+        if reason is None: #enforces a reason requirement to unban someone
+            await ctx.reply("A reason must be supplied to unban someone!")
             return
-        await ctx.guild.unban(user, reason=reason)
+        await ctx.guild.unban(user, reason=reason) #No permission check is required as the person can not be on the server
         await ctx.reply(f"Unbanned user {user.name}#{user.discriminator} (ID {user.id})")
         return
 
