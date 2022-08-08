@@ -1,6 +1,6 @@
 .env
 __pycache__/
 cogs/__pycache__
-servers/
+servers/server_data.db
 venv/
 testsnip.py
