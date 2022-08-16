@@ -1,8 +1,7 @@
 import json
 import asyncio
-import pathlib
 import typing
-import aiosqlite
+import datetime
 
 import sqlalchemy
 import sqlalchemy.orm
@@ -19,10 +18,10 @@ class ServerConfigHandler:
     def __init__(self, database_url:str):
         self.engine = create_async_engine(database_url, future=True)
         self.Session = sqlalchemy.orm.sessionmaker(self.engine, class_=AsyncSession, future=True)
-        self.serverdata = (pathlib.Path("servers") / "server_data.db").resolve()
         # Would use aiofiles, but can't make __init__ an async method
         with open("default_parameters.json", "r") as f:
             self.default_parameters:dict = json.load(f)
+        self.text_cooldown:typing.Dict[str, datetime.datetime] = dict()
     
     async def get_server_parameters(self, guild, *parameters) -> dict:
         """Fetches the server parameters specified in :parameters: for the server :guild:. Returns a dictionary of type "parameter" : value, where value is the corresponding parameter value. if "a" is passed, all server parameters are returned"""
@@ -32,12 +31,16 @@ class ServerConfigHandler:
         else:
             params_to_get = [param for param in parameters if (param in self.default_parameters.keys())] # sanitizes request
         async with self.Session() as session:
-            selection = await session.execute(
-                sqlalchemy.future. \
-                    select(*[sqlalchemy.Column(column) for column in params_to_get]). \
-                        where(models.Parameter.server_id == guild.id)) # create select statement and execute simultaneously. Select all columns from params_to_get for that server
-            row = selection.fetchone() #standard Row object
-            return {k : row[k] for k in row.keys()} #build dictionary
+            results = await session.execute(
+                sqlalchemy.select(
+                    models.Parameter.parameters
+                ).
+                where(
+                    models.Parameter.server_id == guild.id
+                )
+            )
+            results = results.scalars().first()
+            return {k : results[k] for k in params_to_get}
     
     async def update_server_parameters(self, guild, **parameters):
         """Updates the server parameters specified in :parameters: for the server :guild:. values of parameters can be natural objects."""
@@ -46,10 +49,20 @@ class ServerConfigHandler:
         valid_parameters = {parameter : value for parameter, value in parameters.items() if parameter in self.default_parameters.keys()} #sanitizes parameters
         # Then build the update query
         async with self.Session() as session:
+            results = await session.execute(
+                sqlalchemy.select(
+                    models.Parameter.parameters
+                ).
+                where(
+                    models.Parameter.server_id == guild.id
+                )
+            )
+            results = results.scalars().first()
+            results.update(valid_parameters)
             await session.execute(
                 sqlalchemy.update(models.Parameter).
                 where(models.Parameter.server_id == guild.id).
-                values(valid_parameters)
+                values(parameters=results)
             )
             await session.commit()
 
@@ -273,12 +286,10 @@ class ServerConfigHandler:
         """Checks if a guild is in the servers table. If not, initialize server parameters"""
         async with self.Session() as session:
             selection = await session.execute(
-                sqlalchemy.future.select(models.Server).where(models.Server.server_id == guild.id))
+                sqlalchemy.select(models.Server).where(models.Server.server_id == guild.id))
             selection = selection.scalars().first()
             if selection is None:
-                insert_dict = self.default_parameters
-                insert_dict.update({"server_id" : guild.id})
-                server = models.Parameter(**insert_dict)
+                server = models.Parameter(server_id=guild.id, parameters=self.default_parameters)
                 session.add(server)
                 await session.commit()
     
@@ -286,10 +297,6 @@ class ServerConfigHandler:
         """Checks and initializes database if needed"""
         if not self._db_exists():
             await self._create_db()
-
-    def _db_exists(self) -> bool:
-        """Checks if the database exists"""
-        return True if (self.serverdata.exists()) else False
 
     async def _checks(self, guild):
         await self._check_server(guild)

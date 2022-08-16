@@ -1,7 +1,8 @@
 # coding: utf-8
-from sqlalchemy import Column, ForeignKey, Integer, Text, text
+from sqlalchemy import Column, ForeignKey, Integer, Text, text, JSON
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.ext.mutable import MutableDict
 
 Base = declarative_base()
 metadata = Base.metadata
@@ -17,14 +18,7 @@ class Parameter(Server):
     __tablename__ = 'parameters'
 
     server_id = Column(ForeignKey('servers.server_id', ondelete='CASCADE'), primary_key=True)
-    min_account_age = Column(Integer, nullable=False)
-    new_auto_ban = Column(Integer, nullable=False)
-    lockdown = Column(Integer, nullable=False)
-    polder_channel_id = Column(Integer)
-    polder = Column(Integer, nullable=False)
-    random_polder_posts = Column(Integer, nullable=False)
-    random_text_posts = Column(Integer, nullable=False)
-    shitpost_probability = Column(Integer, nullable=False)
+    parameters = Column(MutableDict.as_mutable(JSON))
 
 
 class AutoBanWhitelist(Base):

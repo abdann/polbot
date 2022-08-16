@@ -21,7 +21,9 @@ async def main():
     from dotenv import load_dotenv
     load_dotenv()
     TOKEN = os.getenv('DISCORD_TOKEN_LIVE')
+    DATABASEDRIVER = os.getenv('DATABASE_DRIVER_ASYNC')
     DATABASEURL = os.getenv('DATABASE_URL_LIVE')
+    DATABASEURL = DATABASEDRIVER + DATABASEURL
     intents = discord.Intents.default()
     intents.members = True
     intents.message_content = True

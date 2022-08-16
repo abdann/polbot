@@ -26,6 +26,8 @@ class CommandErrHandler(commands.Cog):
             await ctx.reply("The channel specified by the following was not found!: " + error.argument)
         if isinstance(error, commands.MessageNotFound):
             await ctx.reply("The message specified by the following was not found!: " + error.argument)
+        if isinstance(error, commands.BadArgument):
+            await ctx.reply(f"{error.args}")
         else:
             print(f'Ignoring exception in command {ctx.command}', file=sys.stderr)
             traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
