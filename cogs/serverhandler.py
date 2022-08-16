@@ -40,7 +40,7 @@ class ServerConfigHandler:
                 )
             )
             results = results.scalars().first()
-            return {k : results[k] for k in params_to_get}
+            return {k : results.get(k) for k in params_to_get}
     
     async def update_server_parameters(self, guild, **parameters):
         """Updates the server parameters specified in :parameters: for the server :guild:. values of parameters can be natural objects."""
