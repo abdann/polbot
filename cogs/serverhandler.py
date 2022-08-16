@@ -282,6 +282,70 @@ class ServerConfigHandler:
             )
             return results.scalars().all()
 
+    async def add_family_friendly_channel(self, guild, channel) -> bool:
+        await self._checks(guild)
+        async with self.Session() as session:
+            found_channel = await session.get(models.FamilyFriendlyChannel, {"channel_id" : channel.id})
+            if found_channel is not None:
+                return False
+            session.add(models.FamilyFriendlyChannel(server_id=guild.id, channel_id=channel.id))
+            await session.commit()
+            return True
+    
+    async def remove_family_friendly_channel(self, guild, channel) -> bool:
+        await self._checks(guild)
+        async with self.Session() as session:
+            found_channel = await session.get(models.FamilyFriendlyChannel, {"channel_id" : channel.id})
+            if found_channel is None:
+                return False
+            await session.delete(found_channel)
+            await session.commit()
+            return True
+
+    async def find_in_family_friendly_channels(self, guild, channel) -> bool:
+        await self._checks(guild)
+        async with self.Session() as session:
+            found_channel = await session.get(models.FamilyFriendlyChannel, {"channel_id" : channel.id})
+            return True if found_channel is not None else False
+
+    async def get_family_friendly_channels(self, guild) -> typing.List[int]:
+        await self._checks(guild)
+        async with self.Session() as session:
+            results = await session.execute(
+                sqlalchemy.select(models.FamilyFriendlyChannel.channel_id).
+                where(models.FamilyFriendlyChannel.server_id == guild.id)
+            )
+            return results.scalars().all()
+    
+    async def add_banned_word(self, guild, word:str):
+        await self._checks(guild)
+        async with self.Session() as session:
+            found_banned_word = await session.get(models.ProhibitedWord, {"server_id" : guild.id, "word" : word})
+            if found_banned_word is not None:
+                return False
+            session.add(models.ProhibitedWord(server_id=guild.id, word=word))
+            await session.commit()
+            return True
+
+    async def remove_banned_word(self, guild, word:str) -> bool:
+        await self._checks(guild)
+        async with self.Session() as session:
+            found_word = await session.get(models.ProhibitedWord, {"server_id" : guild.id, "word" : word})
+            if found_word is None:
+                return False
+            await session.delete(found_word)
+            await session.commit()
+            return True
+
+    async def get_banned_words(self, guild) -> typing.List[str]:
+        await self._checks(guild)
+        async with self.Session() as session:
+            results = await session.execute(
+                sqlalchemy.select(models.ProhibitedWord.word).
+                where(models.ProhibitedWord.server_id == guild.id)
+            )
+            return results.scalars().all()
+
     async def _check_server(self, guild):
         """Checks if a guild is in the servers table. If not, initialize server parameters"""
         async with self.Session() as session:

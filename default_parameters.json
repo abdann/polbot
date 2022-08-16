@@ -7,5 +7,6 @@
     "random_polder_posts":false,
     "random_text_posts":false,
     "shitpost_probability":3,
-    "random_text_trigger_cooldown":0
+    "random_text_trigger_cooldown":0,
+    "family_friendly_mode":false
 }
