@@ -5,7 +5,12 @@ import discord
 from discord.ext import commands
 from PIL import Image, ImageDraw, ImageFont
 import io
+import datetime
+import re
 
+pattern = '^(?:(?P<weeks>\d+)[w.])?(?:(?P<days>\d+)[d.])?(?:(?P<hours>\d+)[h.])?(?:(?P<minutes>\d+)[m.])?(?:(?P<seconds>\d+)[s.])?$'
+pattern = re.compile(pattern)
+    
 class Emoji(commands.Converter):
     """Tries to convert an input emoji into a custom emoji first, and if not found into a default emoji"""
     async def convert(self, ctx, argument):
@@ -15,6 +20,33 @@ class Emoji(commands.Converter):
             return custom_emoji
         except commands.EmojiNotFound:
             return get_default_emoji(argument)
+
+class TimeDelta(commands.Converter):
+    async def convert(self, ctx, argument):
+        """
+        Format is
+        1w2d1h18m2s
+
+        :param last_active:
+        :return:
+        """
+        td = twitch_to_time_delta(argument)
+        if td is None:
+            raise commands.BadArgument(f"Invalid time interval {argument}")
+        return td
+
+
+def twitch_to_time_delta(twitch_time: str) -> typing.Optional[datetime.timedelta]:
+    """
+           Format is
+           1w2d1h18m2s
+           """
+    matches = re.search(pattern, twitch_time)
+    if matches is None:
+        # print(f"Invalid TimeDelta {twitch_time}")
+        return
+    args = {k: int(v) for k, v in matches.groupdict().items() if v and v.isdigit()}
+    return datetime.timedelta(**args)
 
 class SayFlags(commands.FlagConverter, delimiter=' ', prefix='-'):
     replyto: discord.Message = commands.flag(name='replyto', default=None)

@@ -13,7 +13,9 @@ from dotenv import find_dotenv, load_dotenv
 from os import getenv
 env = find_dotenv()
 load_dotenv(env)
-url = getenv('DATABASE_URL_LIVE')
+url = getenv('MIGRATION_DATABASE_URL_LIVE')
+driver = getenv('DATABASE_DRIVER_SYNC')
+url = driver + url
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
 if config.config_file_name is not None:
@@ -23,8 +25,8 @@ if config.config_file_name is not None:
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-import servers.models
-target_metadata = servers.models.Base.metadata
+import models
+target_metadata = models.Base.metadata
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
