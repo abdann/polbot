@@ -69,3 +69,19 @@ class TextTrigger(Base):
     message = Column(Text, primary_key=True, nullable=False)
 
     server = relationship('Server')
+
+class FamilyFriendlyChannel(Base):
+    __tablename__ = 'family_friendly_channels'
+
+    server_id = Column(ForeignKey('servers.server_id', ondelete='CASCADE'), nullable=False)
+    channel_id = Column(Integer, primary_key=True)
+
+    server = relationship('Server')
+
+class ProhibitedWord(Base):
+    __tablename__ = 'prohibited_words'
+
+    server_id = Column(ForeignKey('servers.server_id', ondelete='CASCADE'), nullable=False, primary_key=True)
+    word = Column(Text, primary_key=True)
+
+    server = relationship('Server')
