@@ -111,7 +111,11 @@ class ReactionHandler(commands.Cog, name='Reaction'):
     @commands.check(cogs.permissionshandler.PermissionsHandler.moderator_check)
     async def get_text_trigger_cooldown(self, ctx:commands.Context):
         """Gets the cooldown on the automatic text trigger functionality of the bot. Text triggers are ignored during cooldown periods. This is server wide and not channel specific."""
-        cooldown:typing.Dict[str, float] = await self.bot.servers.get_server_parameters(ctx.guild, "random_text_trigger_cooldown")
+        cooldown:typing.Dict[str, typing.Union[float, None]] = await self.bot.servers.get_server_parameters(ctx.guild, "random_text_trigger_cooldown")
+        if cooldown.get("random_text_trigger_cooldown") is None:
+            await self.bot.servers.update_server_parameters(ctx.guild, random_text_trigger_cooldown=self.bot.servers.default_parameters.get("random_text_trigger_cooldown"))
+            await ctx.reply(f"Text trigger cooldown `days, HH:MM:SS.MS`: {datetime.timedelta(seconds=self.bot.servers.default_parameters.get('random_text_trigger_cooldown'))}")
+            return
         cooldown:float = cooldown.get("random_text_trigger_cooldown")
         cooldown:datetime.timedelta = datetime.timedelta(seconds=cooldown)
         await ctx.reply(f"Text trigger cooldown `days, HH:MM:SS.MS`: {cooldown}")
