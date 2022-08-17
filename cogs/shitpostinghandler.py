@@ -253,16 +253,19 @@ class ShitpostingHandler(commands.Cog, name='Shitposting'):
             return text
         else:
             return text[:min(negatives_removed)]
-    
     @commands.command(name="say")
     @commands.check(cogs.permissionshandler.PermissionsHandler.moderator_check)
-    async def say(self, ctx, channel:discord.TextChannel, *, flags: utils.SayFlags):
+    async def say(self, ctx:commands.Context, channel:discord.TextChannel, *, flags: utils.SayFlags):
         """
-        Speak through the bot.
+        Speak through the bot. If the user is an administrator, they can pass the -ping flag to permit everyone, here, and role pings
         channel: Required; the channel to speak in. Can be a # reference or an ID
-        -text: Required; the text to say.
+        -text: Required, string; the text to say.
         -replyto: Optional; the message to reply to. Usually specified by ID.
+        -ping: Optional, boolean; Allows any everyone, here, and role pings in the specified message to ping. This only works if the user is an administrator. 
         """
+        if flags.ping and ctx.author.guild_permissions.administrator:
+            await channel.send(" ".join(flags.text), reference=flags.replyto)
+            return 
         await channel.send(" ".join(flags.text), allowed_mentions=mute_role_and_everyone_pings, reference=flags.replyto)
 
     @commands.command(name="react")

@@ -49,8 +49,9 @@ def twitch_to_time_delta(twitch_time: str) -> typing.Optional[datetime.timedelta
     return datetime.timedelta(**args)
 
 class SayFlags(commands.FlagConverter, delimiter=' ', prefix='-'):
-    replyto: discord.Message = commands.flag(name='replyto', default=None)
-    text: typing.List[str]
+    replyto: discord.Message = commands.flag(name='replyto', default=None, description="Optional; the message to reply to. Usually specified by ID.")
+    text: typing.List[str] = commands.flag(name="text", description="the text to say")
+    ping: bool = commands.flag(name="ping", default=False, description="Optional, boolean; Allows any everyone, here, and role pings in the specified message to ping. This only works if the user is an administrator.")
 
 class ReactFlags(commands.FlagConverter, delimiter=' ', prefix='-'):
     message: discord.Message
