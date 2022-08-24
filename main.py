@@ -11,6 +11,7 @@ import cogs.reactionhandler
 import cogs.commanderrorhandler
 import cogs.moderationhandler
 import cogs.shitpostinghandler
+import cogs.conveniencecommands
 import servers.models
 
 class PolBot(commands.Bot):
@@ -44,6 +45,7 @@ async def main():
     await bot.add_cog(cogs.commanderrorhandler.CommandErrHandler(bot))
     await bot.add_cog(cogs.moderationhandler.ModerationHandler(bot))
     await bot.add_cog(cogs.shitpostinghandler.ShitpostingHandler(bot))
+    await bot.add_cog(cogs.conveniencecommands.ConvenienceHandler(bot))
     #Add cogs to bot before this line
 
     #Login and connect to Discord
