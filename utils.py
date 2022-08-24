@@ -13,7 +13,7 @@ pattern = re.compile(pattern)
     
 class Emoji(commands.Converter):
     """Tries to convert an input emoji into a custom emoji first, and if not found into a default emoji"""
-    async def convert(self, ctx, argument):
+    async def convert(self, ctx, argument) -> typing.Union[discord.Emoji, str, None]:
         try:
             emoji_converter = commands.EmojiConverter()
             custom_emoji = await emoji_converter.convert(ctx, argument)
@@ -67,6 +67,13 @@ class MarkovFlags(commands.FlagConverter, delimiter=' ', prefix='-'):
 class TextTriggerFlags(commands.FlagConverter, delimiter=' ', prefix='-'):
     trigger: str
     text: str
+
+class HungerGamesFlags(commands.FlagConverter, delimiter=' ', prefix='-'):
+    imagechannel: discord.TextChannel = commands.flag(name='imagechannel', default=None, description="The text channel where the members' profile pics will be posted for the hunger games to work.")
+    members: typing.Tuple[discord.Member, ...] = commands.flag(name='members', default=None, description='Members to include in the hunger games')
+    reaction: Emoji = commands.flag(name="reaction", default=None, description="The reaction to use.")
+    usemembernicknames: bool = commands.flag(name="usemembernicknames", default=False, description="Whether to use server members nicknames or their Discord tags. Default False (use Discord tags).")
+    useserveravatars: bool = commands.flag(name="useserveravatars", default=True, description="For Nitro members, Whether to use server-specific profile pictures or their standard Discord profile picture. Default True (use server-specific profile picture).")
 
 async def caption(image:typing.Union[discord.Asset, discord.Attachment], text:str) -> discord.File:
     """Caption a discord avatar with the given text. Returns the captioned image in bytes"""
@@ -168,6 +175,14 @@ def get_emoji(guild, emoji_string:str): #For converting from SQL format to disco
     except ValueError: # Try to interpret it as a default emoji and return the encoded Unicode representation
         return get_default_emoji(emoji_string)
 
+def get_avatar(member:discord.Member, display_avatar:bool) -> discord.Asset:
+    """Returns the display avatar if specified, otherwise standard avatar. If standard avatar does not exist, returns display avatar."""
+    return member.display_avatar if display_avatar else member.avatar if member.avatar is not None else member.display_avatar
+    
+def get_name(member:discord.Member, nickname:bool) -> str:
+    """Returns member nickname if specified, else normal name"""
+    return member.display_name if nickname else member.name
+    
 def stringify_emoji(emoji_like) -> str: #For converting from discord.Emoji or Unicode emoji to SQL format
     """Inverse function of get_emoji"""
     if isinstance(emoji_like, discord.Emoji):
