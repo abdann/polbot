@@ -69,7 +69,6 @@ class TextTriggerFlags(commands.FlagConverter, delimiter=' ', prefix='-'):
     text: str
 
 class HungerGamesFlags(commands.FlagConverter, delimiter=' ', prefix='-'):
-    imagechannel: discord.TextChannel = commands.flag(name='imagechannel', default=None, description="The text channel where the members' profile pics will be posted for the hunger games to work.")
     members: typing.Tuple[discord.Member, ...] = commands.flag(name='members', default=None, description='Members to include in the hunger games')
     reaction: Emoji = commands.flag(name="reaction", default=None, description="The reaction to use.")
     usemembernicknames: bool = commands.flag(name="usemembernicknames", default=False, description="Whether to use server members nicknames or their Discord tags. Default False (use Discord tags).")
