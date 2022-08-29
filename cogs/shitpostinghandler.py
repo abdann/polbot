@@ -20,13 +20,15 @@ mute_role_and_everyone_pings = discord.AllowedMentions(everyone=False, users=Tru
 class ShitpostingHandler(commands.Cog, name='Shitposting'):
     """Handles all shitposting commands and features of the bot"""
     def __init__(self, bot):
-        self.bot = bot
+        self.bot:commands.bot.Bot = bot
         self.bot.making_text = False
         self.RE_MESSAGE_MATCH = '^[a-zA-Z0-9\s\.,“”!\?/\(\)]+$'
 
     @commands.Cog.listener()
-    async def on_message(self, message):
-        if message.author.id == self.bot.user.id:
+    async def on_message(self, message:discord.Message):
+        if message.author.id == self.bot.user.id or message.author.bot:
+            return
+        if message.content.startswith(self.bot.command_prefix):
             return
         params = await self.bot.servers.get_server_parameters(message.guild, "a")
         if await self.bot.servers.find_in_shitposting_channels(message.guild, message.channel.id):
@@ -108,10 +110,6 @@ class ShitpostingHandler(commands.Cog, name='Shitposting'):
     async def _add_polder_post(self, message:discord.Message, params):
         """Adds a message to PolBot's repetoire of things he can post from polder."""
         if message.channel.id == params.get("polder_channel_id") and params.get("polder"):
-            if message.content.startswith(self.bot.command_prefix): # Exit if contains command
-                return
-            if message.author.id == self.bot.user.id: # Exit if bot message
-                return
             uploaded_media_link_list = [attachment.url for attachment in message.attachments]
             uploaded_media_links = "\n".join(uploaded_media_link_list) if len(uploaded_media_link_list) > 0 else ""
             content = message.content + "\n" + uploaded_media_links if uploaded_media_links != "" else message.content
@@ -179,7 +177,7 @@ class ShitpostingHandler(commands.Cog, name='Shitposting'):
                         await self.bot.servers.remove_in_polder(message.guild, message_id=message_id)
                         return await self._post_random_polder(message, params) #recursively try again
                     except discord.Forbidden:
-                        message.channel.send("Error: I am unable to access polder messages due to permissions.")
+                        await message.channel.send("Error: I am unable to access polder messages due to permissions.")
                         return
                     except discord.HTTPException:
                         return
@@ -191,16 +189,16 @@ class ShitpostingHandler(commands.Cog, name='Shitposting'):
             if self.bot.making_text:
                 await message.channel.send(content="Currently generating text, please try again later", delete_after=5)
                 return
-            self.bot.making_text = True
             async with message.channel.typing():
+                self.bot.making_text = True
                 text = await self._scrape_text(message.channel, limit=1000)
-                chatchain = markovify.NewlineText(text)
-                async with aiofiles.open((Path("corpi") / "politicalchain.json").resolve(), "r") as f:
-                    text = await f.read()
-                polchain = markovify.NewlineText.from_json(text)
-                netchain = markovify.combine([polchain, chatchain], [1, 100])
-                await message.channel.send(content=netchain.make_sentence(tries=100))
-            self.bot.making_text = False
+                try:
+                    generated_text:str = await asyncio.wait_for(self._generate_text(text, dweight=1, cweight=100, tries=100), 60) #max 60 seconds, otherwise abort
+                except asyncio.TimeoutError:
+                    self.bot.making_text = False #silently ignore error
+                    return
+                await message.channel.send(generated_text)
+                self.bot.making_text = False
 
     async def _post_listener(self, message, params, method):
         """Runs a shitposting method if the probability chance is met"""
@@ -298,17 +296,24 @@ class ShitpostingHandler(commands.Cog, name='Shitposting'):
             else:
                 member = choice(ctx.guild.members)
                 image = member.display_avatar.with_static_format("png")
-            chat_corpus = await self._scrape_text(ctx.channel, limit=1000) #collects corpus of chat text
-            caption = await self._generate_text(chat_corpus) #generates standard semi-coherent text
-            image = await utils.caption(image, " ".join(caption).upper()) #captions profile picture with caption made in previous line
-            await ctx.send(file=image) #sends captioned profile picture
+            try:
+                captioned:discord.File = await asyncio.wait_for(self._impact_awaitable(ctx.channel, image), 60) #wait for 1 minute, any longer and produce error
+            except asyncio.TimeoutError:
+                await ctx.reply("Took too long to make a caption. Aborting.")
+                self.bot.making_text = False #resets flag
+                return
+            await ctx.send(file=captioned) #sends captioned profile picture
         self.bot.making_text = False
 
+    async def _impact_awaitable(self, source_channel, image:discord.Asset):
+        chat_corpus = await self._scrape_text(source_channel, limit=1000) #collects corpus of chat text
+        caption = await self._generate_text(chat_corpus) #generates standard semi-coherent text
+        return await utils.caption(image, " ".join(caption).upper()) #captions profile picture with caption made in previous line
 
     @commands.command(name="markov", aliases=['m'])
     @commands.check(cogs.permissionshandler.PermissionsHandler.moderator_check)
     @commands.check(cogs.permissionshandler.markov_command_running)
-    async def markov(self, ctx, flags:utils.MarkovFlags):
+    async def markov(self, ctx:commands.Context, flags:utils.MarkovFlags):
         """Produce random text produced from political theory and the chat. This is a beta feature.
         
         valid flags:
@@ -320,16 +325,13 @@ class ShitpostingHandler(commands.Cog, name='Shitposting'):
         async with ctx.channel.typing():
             self.bot.making_text = True
             text = await self._scrape_text(ctx.channel, limit=flags.limit)
-            chatchain = markovify.NewlineText(text)
-            async with aiofiles.open((Path("corpi") / "politicalchain.json").resolve(), "r") as f:
-                text = await f.read()
-            polchain = markovify.NewlineText.from_json(text)
-            netchain = markovify.combine([polchain, chatchain], [flags.dweight, flags.cweight])
-            if flags.dump is not None:
-                await flags.dump.send(content=(netchain.make_sentence(tries=flags.tries) or "Failed to generate a sentence"))
+            try:
+                generated_text = await asyncio.wait_for(self._generate_text(text, dweight=flags.dweight, cweight=flags.cweight, tries=flags.tries), 60) #max 60 seconds, otherwise abort
+            except asyncio.TimeoutError:
+                await ctx.reply("Took too long to generate text. Aborting.")
+                self.bot.making_text = False
                 return
-            else:
-                await ctx.send(content=(netchain.make_sentence(tries=flags.tries) or "Failed to generate a sentence"))
+            await ctx.send(generated_text)
         self.bot.making_text = False
 
     async def _scrape_text(self, channel, **kwargs):
@@ -337,7 +339,16 @@ class ShitpostingHandler(commands.Cog, name='Shitposting'):
         valid_params = ["limit"] # allowed keywords
         params = {k : v for k, v in kwargs.items() if k in valid_params and v is not None} # sanitizes kwargs
         return "\n".join([message.content async for message in channel.history(limit=params.get("limit")) if (re.match(self.RE_MESSAGE_MATCH, message.content) and not message.author.bot)])
-    
+        
+    async def _generate_text(self, chat_corpus:str, **kwargs) -> str:
+        """Generate text given a body of text and extra parameters"""
+        chatchain = markovify.NewlineText(chat_corpus)
+        async with aiofiles.open((Path("corpi") / "politicalchain.json").resolve(), "r") as f:
+            text = await f.read()
+        polchain = markovify.NewlineText.from_json(text)
+        netchain = markovify.combine([polchain, chatchain], [kwargs.pop("dweight", 1), kwargs.pop("cweight", 100)])
+        return netchain.make_sentence(tries=kwargs.pop("tries", 100))
+
     @commands.command(name='makecorpus', aliases=['mc'])
     @commands.check(cogs.permissionshandler.PermissionsHandler.owner_check)
     async def initialize_corpus(self, ctx):
@@ -358,13 +369,3 @@ class ShitpostingHandler(commands.Cog, name='Shitposting'):
     
     async def _react(self, message: discord.Message, reaction:utils.Emoji):
         await message.add_reaction(reaction)
-    
-    async def _generate_text(self, chat_corpus:str, **kwargs) -> str:
-        """Generate text given a body of text and extra parameters"""
-        chatchain = markovify.NewlineText(chat_corpus)
-        async with aiofiles.open((Path("corpi") / "politicalchain.json").resolve(), "r") as f:
-            text = await f.read()
-        polchain = markovify.NewlineText.from_json(text)
-        netchain = markovify.combine([polchain, chatchain], [kwargs.pop("dweight", 1), kwargs.pop("cweight", 100)])
-        return netchain.make_sentence(tries=kwargs.pop("tries", 100))
-        
