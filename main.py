@@ -15,12 +15,17 @@ import cogs.conveniencecommands
 import servers.models
 
 class PolBot(commands.Bot):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.BOTOWNERID = kwargs.pop("botownerid")
+
     async def on_ready(self):
         print(f'{self.user.name} has connected to Discord!')
 
 async def main():
     from dotenv import load_dotenv
     load_dotenv()
+    OWNERID = os.getenv('OWNERID')
     TOKEN = os.getenv('DISCORD_TOKEN_LIVE')
     DATABASEDRIVER = os.getenv('DATABASE_DRIVER_ASYNC')
     DATABASEURL = os.getenv('DATABASE_URL_LIVE')
@@ -31,7 +36,8 @@ async def main():
     bot = PolBot(
         command_prefix='.pol ',
         intents=intents,
-        help_command=PrettyHelp()
+        help_command=PrettyHelp(),
+        botownerid=int(OWNERID)
     )
     # Initialize database API
     bot.servers = cogs.serverhandler.ServerConfigHandler(DATABASEURL)

@@ -1,8 +1,4 @@
 from discord.ext import commands
-from dotenv import load_dotenv
-from os import getenv
-load_dotenv()
-OWNERID = getenv('OWNERID')
 #Temporary hard coded role names. Plan to migrate to a better system
 trial_moderator_role_name = "Trial Moderator"
 moderator_role_name = "Moderator"
@@ -42,9 +38,9 @@ class PermissionsHandler(commands.Cog, name='Permissions'):
     #     return True if (ctx.message.author.id == owner_id) else False
 
     @classmethod
-    def owner_check(cls, ctx):
+    def owner_check(cls, ctx:commands.Context):
             """Checks if a command invoker is the owner"""
-            return True if (ctx.author.id == OWNERID) else False
+            return True if (ctx.author.id == ctx.bot.BOTOWNERID) else False
 
 def markov_command_running(ctx):
     return not ctx.bot.making_text
