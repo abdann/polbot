@@ -1,12 +1,9 @@
 from discord.ext import commands
-
 #Temporary hard coded role names. Plan to migrate to a better system
 trial_moderator_role_name = "Trial Moderator"
 moderator_role_name = "Moderator"
 executive_moderator_role_name = "Executive Moderator"
 admin_role_name = "Admin"
-bot_owner_role_name = "PolBot's Dad"
-owner_id = 250636361223241728 #This is abdann's discord ID
 
 
 class PermissionsHandler(commands.Cog, name='Permissions'):
@@ -41,9 +38,9 @@ class PermissionsHandler(commands.Cog, name='Permissions'):
     #     return True if (ctx.message.author.id == owner_id) else False
 
     @classmethod
-    def owner_check(cls, ctx):
+    def owner_check(cls, ctx:commands.Context):
             """Checks if a command invoker is the owner"""
-            return True if (ctx.author.id == owner_id) else False
+            return True if (ctx.author.id == ctx.bot.BOTOWNERID) else False
 
 def markov_command_running(ctx):
     return not ctx.bot.making_text
