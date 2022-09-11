@@ -149,12 +149,11 @@ class ReactionHandler(commands.Cog, name='Reaction'):
     async def _coro_send_text(self, message, text):
         await message.channel.send(text)
 
-    async def _string_search(self, message) -> typing.Union[typing.Tuple[typing.Union[typing.List[utils.Emoji], typing.List], typing.Union[typing.List[str], typing.List]], None]:
+    async def _string_search(self, message:discord.Message) -> typing.Union[typing.Tuple[typing.Union[typing.List[utils.Emoji], typing.List], typing.Union[typing.List[str], typing.List]], None]:
         """Searches a string for trigger phrases. Returns a tuple of lists, where the first is the list of reactions to add and the second is the list of messages to send"""
         if await self.bot.servers.find_in_shitposting_channels(message.guild, message.channel.id):
-            content:typing.List[str] = message.content.casefold().split()
             reaction_triggers:typing.Dict[str, utils.Emoji] = await self.bot.servers.get_emoji_reaction_triggers(message.guild)
-            reactions_to_add:typing.List[utils.Emoji] = [reaction for trigger_phrase, reaction in reaction_triggers.items() if trigger_phrase in content]
+            reactions_to_add:typing.List[utils.Emoji] = [reaction for trigger_phrase, reaction in reaction_triggers.items() if trigger_phrase in message.content]
             cooldown:typing.Dict[str, float] = await self.bot.servers.get_server_parameters(message.guild, "random_text_trigger_cooldown")
             cooldown:datetime.timedelta = datetime.timedelta(seconds=cooldown.get("random_text_trigger_cooldown"))
             last_trigger:typing.Union[datetime.datetime, None] = self.bot.servers.text_cooldown.get(str(message.guild.id))
@@ -162,7 +161,7 @@ class ReactionHandler(commands.Cog, name='Reaction'):
                 if datetime.datetime.now() - last_trigger < cooldown:
                     return (reactions_to_add, list())
             text_triggers:typing.Dict[str, str] = await self.bot.servers.get_text_triggers(message.guild)
-            messages_to_send:typing.List[str] = [text_to_send for trigger_phrase, text_to_send in text_triggers.items() if trigger_phrase in content]
+            messages_to_send:typing.List[str] = [text_to_send for trigger_phrase, text_to_send in text_triggers.items() if trigger_phrase in message.content]
             return (reactions_to_add, messages_to_send)
         else:
             return None

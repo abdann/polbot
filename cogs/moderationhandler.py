@@ -372,10 +372,9 @@ class ModerationHandler(commands.Cog, name='Moderation'):
         if family_friendly_mode: #Checks if family friendly mode is enabled on the server
             if await self.bot.servers.find_in_family_friendly_channels(message.guild, message.channel): #Checks if the channel is a moderated channel
                 banned_words:typing.List[str] = await self.bot.servers.get_banned_words(message.guild)
-                content:typing.List[str] = message.content.casefold().split() #split the message into words and make them lowercase to normalize
                 for word in banned_words: #loop over this because it will almost always be smaller than the message
                     word = word.casefold() #Normalize the words to catch lowercase
-                    if word in content:
+                    if word in message.content:
                         author:discord.Member = message.author
                         channel = message.channel
                         await message.delete()
