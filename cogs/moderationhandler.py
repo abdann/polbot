@@ -10,28 +10,21 @@ class ModerationHandler(commands.Cog, name='Moderation'):
     """Handles all moderation functions of the bot as well as corresponding commands"""
     def __init__(self, bot):
         self.bot = bot
-        # IDK if this line is correct
-        # with open("parameters.json") as f:
-        #     parameters = json.load(f)
-        # self.bot.parameters = parameters
-        # with open("auto_ban_whitelist.json") as f:
-        #     auto_ban_whitelist = json.load(f)
-        # self.bot.auto_ban_whitelist = auto_ban_whitelist
         self.ban_embed = discord.Embed(description="""We automatically ban new accounts because of frequent raids. If you believe this to be a mistake, please appeal to the staff in our appeals server. Here is the invite: https://discord.gg/7bST6Ha73X""", 
         title="""You have been automatically banned from Political Compass Memes because your account was younger than the minimum account age.""")
 
     @commands.command(name="stoppolbot", aliases=['stop'])
     @commands.check(cogs.permissionshandler.PermissionsHandler.owner_check)
     async def stop_pol_bot(self, ctx):
-        """[Admin command] Stops the monster when he's gone off the deep end (Shuts down the bot gracefully)"""
+        """Stops the monster when he's gone off the deep end (Shuts down the bot gracefully)"""
         await ctx.reply("Attempting shutdown. Further bot actions beyond this message indicate a failure to halt")
         await ctx.bot.close()
 
 
     @commands.command(name="enablelockdown", aliases=['elockdown'])
-    @commands.check(cogs.permissionshandler.PermissionsHandler.executive_moderator_check)
+    @commands.check(cogs.permissionshandler.staff_check)
     async def enablelockdown(self, ctx):
-        """[Executive Moderator command] Command to enable a lockdown and disallow members to join"""
+        """Command to enable a lockdown and disallow members to join"""
         params = await self.bot.servers.get_server_parameters(ctx.guild, "lockdown")
         if not params["lockdown"]:
             params.update({"lockdown" : True})
@@ -42,9 +35,9 @@ class ModerationHandler(commands.Cog, name='Moderation'):
             await ctx.reply('Lockdown is already enabled!')
     
     @commands.command(name="disablelockdown", aliases=['dlockdown'])
-    @commands.check(cogs.permissionshandler.PermissionsHandler.executive_moderator_check)
+    @commands.check(cogs.permissionshandler.staff_check)
     async def disablelockdown(self, ctx):
-        """[Executive Moderator command] Command to disable a lockdown and allowed members to join"""
+        """Command to disable a lockdown and allowed members to join"""
         params = await self.bot.servers.get_server_parameters(ctx.guild, "lockdown")
         if params["lockdown"]:
             params.update({"lockdown" : False})
@@ -55,17 +48,17 @@ class ModerationHandler(commands.Cog, name='Moderation'):
             await ctx.reply('Lockdown is already disabled!')
 
     @commands.command(name='lockdownstatus', aliases=['lockdown?'])
-    @commands.check(cogs.permissionshandler.PermissionsHandler.trial_moderator_check)
+    @commands.check(cogs.permissionshandler.staff_check)
     async def lockdown_status(self, ctx):
-        """[Moderator command] Returns whether or not there is a lockdown in effect."""
+        """Returns whether or not there is a lockdown in effect."""
         lockdown_status = await self.bot.servers.get_server_parameters(ctx.guild, 'lockdown')
         await ctx.reply(f"Lockdown enabled: {lockdown_status.get('lockdown')}")
         return
 
     @commands.command(name="setminimumautobanage", aliases=['setminage'])
-    @commands.check(cogs.permissionshandler.PermissionsHandler.executive_moderator_check)
+    @commands.check(cogs.permissionshandler.staff_check)
     async def set_autoban_age(self, ctx, age):
-        """[Executive Moderator command] Command to set the minimum age an account must be to be able to join the server. age is an integer for account age in days"""
+        """Command to set the minimum age an account must be to be able to join the server. age is an integer for account age in days"""
         try:
             age = int(age)
         except ValueError:
@@ -77,17 +70,17 @@ class ModerationHandler(commands.Cog, name='Moderation'):
         await ctx.reply(f'Set the minimum account age to {age} days old')
 
     @commands.command(name="getminimumautobanage", aliases=['minage'])
-    @commands.check(cogs.permissionshandler.PermissionsHandler.trial_moderator_check)
+    @commands.check(cogs.permissionshandler.staff_check)
     async def get_autoban_age(self, ctx):
-        """[Moderator command] Command to get the minimum age an account must be to be able to join the server without getting autobanned."""
+        """Command to get the minimum age an account must be to be able to join the server without getting autobanned."""
         min_age = await self.bot.servers.get_server_parameters(ctx.guild, "min_account_age")
         await ctx.reply(f'Minimum account age: {min_age.get("min_account_age")} days')
 
 
     @commands.command(name="enableautoban", aliases=['eautoban'])
-    @commands.check(cogs.permissionshandler.PermissionsHandler.executive_moderator_check)
+    @commands.check(cogs.permissionshandler.staff_check)
     async def enableautoban(self, ctx):
-        """[Executive Moderator command] Command to enable autoban system"""
+        """Command to enable autoban system"""
         params = await self.bot.servers.get_server_parameters(ctx.guild, "new_auto_ban")
         if params["new_auto_ban"]:
             await ctx.reply('autoban system already enabled!')
@@ -98,9 +91,9 @@ class ModerationHandler(commands.Cog, name='Moderation'):
         return
 
     @commands.command(name="disableautoban", aliases=['dautoban'])
-    @commands.check(cogs.permissionshandler.PermissionsHandler.executive_moderator_check)
+    @commands.check(cogs.permissionshandler.staff_check)
     async def disableautoban(self, ctx):
-        """[Executive Moderator command] Command to disable autoban system"""
+        """Command to disable autoban system"""
         params = await self.bot.servers.get_server_parameters(ctx.guild, "new_auto_ban")
         if not params["new_auto_ban"]:
             await ctx.reply('autoban system already disabled!')
@@ -111,17 +104,17 @@ class ModerationHandler(commands.Cog, name='Moderation'):
         return
 
     @commands.command(name="autoban_status", aliases=['autoban?'])
-    @commands.check(cogs.permissionshandler.PermissionsHandler.trial_moderator_check)
+    @commands.check(cogs.permissionshandler.staff_check)
     async def autoban_status(self, ctx):
-        """[Moderator command] Returns whether or not the new account autoban feature is enabled"""
+        """Returns whether or not the new account autoban feature is enabled"""
         auto_ban_status = await self.bot.servers.get_server_parameters(ctx.guild, 'new_auto_ban')
         await ctx.reply(f"New account autoban feature enabled: {auto_ban_status.get('new_auto_ban')}")
         return
 
     @commands.command(name="addwhitelist")
-    @commands.check(cogs.permissionshandler.PermissionsHandler.moderator_check)
+    @commands.check(cogs.permissionshandler.staff_check)
     async def add_to_whitelist(self, ctx, user: discord.User):
-        """[Moderator command] Adds a person to the auto-ban whitelist, allowing them to join the server although they are younger than the minimum age set. If the person if not already unbanned, this command also unbans them"""
+        """Adds a person to the auto-ban whitelist, allowing them to join the server although they are younger than the minimum age set. If the person if not already unbanned, this command also unbans them"""
         if await self.bot.servers.add_in_server_auto_ban_whitelist(ctx.guild, user):
             try:
                 await ctx.guild.unban(user, reason='New account has been whitelisted by staff')
@@ -134,9 +127,9 @@ class ModerationHandler(commands.Cog, name='Moderation'):
 
 
     @commands.command(name="removewhitelist", aliases=['rmwhitelist'])
-    @commands.check(cogs.permissionshandler.PermissionsHandler.moderator_check)
+    @commands.check(cogs.permissionshandler.staff_check)
     async def remove_from_whitelist(self, ctx, user:discord.User):
-        """[Moderator command] Removes a person from the auto-ban whitelist."""
+        """Removes a person from the auto-ban whitelist."""
 
         if await self.bot.servers.remove_in_server_auto_ban_whitelist(ctx.guild, user):
             await ctx.reply(f'Removed User {user.display_name} with ID {user.id} from whitelist')
@@ -145,9 +138,9 @@ class ModerationHandler(commands.Cog, name='Moderation'):
         return
     
     @commands.command(name="getwhitelist")
-    @commands.check(cogs.permissionshandler.PermissionsHandler.trial_moderator_check)
+    @commands.check(cogs.permissionshandler.staff_check)
     async def get_whitelist(self, ctx):
-        """[Moderator command] Lists all whitelisted users"""
+        """Lists all whitelisted users"""
         whitelist = await self.bot.servers.get_server_auto_ban_whitelist(ctx.guild)
         if len(whitelist) != 0:
             await ctx.reply('\n'.join([f"ID: {user_id} ,User: {ctx.guild.get_member(user_id)}" for user_id in whitelist]))
@@ -155,7 +148,7 @@ class ModerationHandler(commands.Cog, name='Moderation'):
         await ctx.reply("No whitelisted users")
     
     @commands.command(name="ban")
-    @commands.check(cogs.permissionshandler.PermissionsHandler.moderator_check)
+    @commands.check(cogs.permissionshandler.staff_check)
     async def ban(self, ctx:commands.Context, user:typing.Union[discord.Member, discord.User], *reason): # must have member before user in Union to resolve correctly
         """Bans the user"""
         reason = " ".join(reason)
@@ -175,7 +168,7 @@ class ModerationHandler(commands.Cog, name='Moderation'):
         await ctx.reply(f"Banned user {user.name}#{user.discriminator} (ID {user.id})")
     
     @commands.command(name="unban")
-    @commands.check(cogs.permissionshandler.PermissionsHandler.moderator_check)
+    @commands.check(cogs.permissionshandler.staff_check)
     async def unban(self, ctx:commands.Context, user:discord.User, *reason):
         """Unbans a user"""
         reason = " ".join(reason)
@@ -187,7 +180,7 @@ class ModerationHandler(commands.Cog, name='Moderation'):
         return
 
     @commands.command(name="enablefamilyfriendlymode", aliases=['enableffmode', 'effmode'])
-    @commands.check(cogs.permissionshandler.PermissionsHandler.moderator_check)
+    @commands.check(cogs.permissionshandler.staff_check)
     async def enable_family_friendly_mode(self, ctx:commands.Context):
         """Enables Family Friendly mode. 
         
@@ -205,7 +198,7 @@ class ModerationHandler(commands.Cog, name='Moderation'):
         return
 
     @commands.command(name="disablefamilyfriendlymode", aliases=['disableffmode', 'dffmode'])
-    @commands.check(cogs.permissionshandler.PermissionsHandler.moderator_check)
+    @commands.check(cogs.permissionshandler.staff_check)
     async def disable_family_friendly_mode(self, ctx:commands.Context):
         """Disables Family Friendly mode. 
         
@@ -223,7 +216,7 @@ class ModerationHandler(commands.Cog, name='Moderation'):
         return
     
     @commands.command(name="getfamilyfriendlymode", aliases=['getffmode', 'familyfriendlymode?', 'ffmode?'])
-    @commands.check(cogs.permissionshandler.PermissionsHandler.moderator_check)
+    @commands.check(cogs.permissionshandler.staff_check)
     async def get_family_friendly_mode(self, ctx:commands.Context):
         """Checks if Family Friendly mode is enabled. 
         
@@ -238,7 +231,7 @@ class ModerationHandler(commands.Cog, name='Moderation'):
         await ctx.reply(f"Family Friendly mode is {setting} in designated channels.")
 
     @commands.command(name="addfamilyfriendlychannel", aliases=['addffchannel', 'addfamilyfriendlychannels', 'addffchannels'])
-    @commands.check(cogs.permissionshandler.PermissionsHandler.moderator_check)
+    @commands.check(cogs.permissionshandler.staff_check)
     async def add_family_friendly_channel(self, ctx:commands.Context, channels:commands.Greedy[discord.TextChannel]):
         """Adds a channel (or multiple channels, as provided) to the list of designated Family Friendly channels."""
         added_channels = list()
@@ -262,7 +255,7 @@ class ModerationHandler(commands.Cog, name='Moderation'):
         await ctx.reply(embed=embed)
 
     @commands.command(name="removefamilyfriendlychannel", aliases=['removeffchannel', 'rmffchannel', 'removefamilyfriendlychannels','removeffchannels', 'rmffchannels'])
-    @commands.check(cogs.permissionshandler.PermissionsHandler.moderator_check)
+    @commands.check(cogs.permissionshandler.staff_check)
     async def remove_family_friendly_channel(self, ctx:commands.Context, channels:commands.Greedy[discord.TextChannel]):
         """Removes a channel (or multiple channels, as provided) to the list of designated Family Friendly channels."""
         removed_channels = list()
@@ -285,7 +278,7 @@ class ModerationHandler(commands.Cog, name='Moderation'):
         await ctx.reply(embed=embed)
 
     @commands.command(name="listfamilyfriendlychannels", aliases=['listffchannels', 'getfamilyfriendlychannels', 'getffchannels', 'familyfriendlychannels?', 'ffchannels?'])
-    @commands.check(cogs.permissionshandler.PermissionsHandler.moderator_check)
+    @commands.check(cogs.permissionshandler.staff_check)
     async def get_family_friendly_channels(self, ctx:commands.Context):
         """Gets the list of designated Family Friendly channels."""
         ffchannel_ids:typing.List[int] = await self.bot.servers.get_family_friendly_channels(ctx.guild)
@@ -301,7 +294,7 @@ class ModerationHandler(commands.Cog, name='Moderation'):
         await ctx.reply(embed=embed)
     
     @commands.command(name='addbannedword')
-    @commands.check(cogs.permissionshandler.PermissionsHandler.moderator_check)
+    @commands.check(cogs.permissionshandler.staff_check)
     async def add_banned_word(self, ctx:commands.Context, word:str):
         """Adds a word to the list of banned words under Family Friendly mode. This must be a single word."""
         if await self.bot.servers.add_banned_word(ctx.guild, word):
@@ -319,7 +312,7 @@ class ModerationHandler(commands.Cog, name='Moderation'):
         await ctx.reply(embed=embed)
     
     @commands.command(name='removebannedword', aliases=['rmbannedword'])
-    @commands.check(cogs.permissionshandler.PermissionsHandler.moderator_check)
+    @commands.check(cogs.permissionshandler.staff_check)
     async def remove_banned_word(self, ctx:commands.Context, word:str):
         """Removes a word from the list of banned words under Family Friendly mode. This must be a single word."""
         if await self.bot.servers.remove_banned_word(ctx.guild, word):
@@ -337,7 +330,7 @@ class ModerationHandler(commands.Cog, name='Moderation'):
         await ctx.reply(embed=embed)
 
     @commands.command(name='listbannedwords', aliases=['getbannedwords', 'bannedwords?'])
-    @commands.check(cogs.permissionshandler.PermissionsHandler.moderator_check)
+    @commands.check(cogs.permissionshandler.staff_check)
     async def get_banned_words(self, ctx:commands.Context):
         """Gets the list of banned words under Family Friendly mode."""
         banned_words:typing.List[str] = await self.bot.servers.get_banned_words(ctx.guild)
