@@ -13,9 +13,9 @@ class ReactionHandler(commands.Cog, name='Reaction'):
         self.bot = bot
 
     @commands.command(name="addemojitrigger", aliases=['addemoji'])
-    @commands.check(cogs.permissionshandler.PermissionsHandler.executive_moderator_check)
+    @commands.check(cogs.permissionshandler.staff_check)
     async def add_emoji_trigger(self, ctx, trigger_phrase:str, emoji:utils.Emoji):
-        """[Executive Moderator command] Adds an emoji reaction trigger"""
+        """Adds an emoji reaction trigger"""
         if emoji is None:
             raise commands.EmojiNotFound
         if await self.bot.servers.add_emoji_reaction_trigger(ctx.guild, trigger_phrase, emoji):
@@ -25,9 +25,9 @@ class ReactionHandler(commands.Cog, name='Reaction'):
 
     
     @commands.command(name="removeemojitrigger", aliases=['rmemoji'])
-    @commands.check(cogs.permissionshandler.PermissionsHandler.executive_moderator_check)
+    @commands.check(cogs.permissionshandler.staff_check)
     async def remove_emoji_trigger(self, ctx, trigger_phrase:str, emoji:utils.Emoji):
-        """[Executive Moderator command] Removes an emoji reaction trigger"""
+        """Removes an emoji reaction trigger"""
         if emoji is None:
             raise commands.EmojiNotFound
         if await self.bot.servers.remove_emoji_reaction_trigger(ctx.guild, trigger_phrase=trigger_phrase, emoji=emoji):
@@ -37,9 +37,9 @@ class ReactionHandler(commands.Cog, name='Reaction'):
         
 
     @commands.command(name="listemojitriggers", aliases=['listemojis'])
-    @commands.check(cogs.permissionshandler.PermissionsHandler.trial_moderator_check)
+    @commands.check(cogs.permissionshandler.staff_check)
     async def list_emoji_reaction_triggers(self, ctx):
-        """[Moderator command] Lists all registered trigger phrases and the corresponding reaction name"""
+        """Lists all registered trigger phrases and the corresponding reaction name"""
         reaction_triggers = await self.bot.servers.get_emoji_reaction_triggers(ctx.guild)
         if len(reaction_triggers) == 0:
             await ctx.reply('No reaction triggers are currently set')
@@ -47,9 +47,9 @@ class ReactionHandler(commands.Cog, name='Reaction'):
         await ctx.reply('\n'.join([f'{key}: {value}' for key, value in reaction_triggers.items()]))
 
     @commands.command(name="addtexttrigger", aliases=['addtext'])
-    @commands.check(cogs.permissionshandler.PermissionsHandler.executive_moderator_check)
+    @commands.check(cogs.permissionshandler.staff_check)
     async def add_text_trigger(self, ctx, *, flags: utils.TextTriggerFlags):
-        """[Executive Moderator command] Adds a text trigger.
+        """Adds a text trigger.
         When the trigger phrase is detected, the bot sends a message containing the text.
         
         valid flags:
@@ -62,9 +62,9 @@ class ReactionHandler(commands.Cog, name='Reaction'):
         await ctx.reply("Text trigger is already present.")
 
     @commands.command(name="removetexttrigger", aliases=['rmtext'])
-    @commands.check(cogs.permissionshandler.PermissionsHandler.executive_moderator_check)
+    @commands.check(cogs.permissionshandler.staff_check)
     async def remove_text_trigger(self, ctx, *, flags: utils.TextTriggerFlags):
-        """[Executive Moderator command] Removes a text trigger.
+        """Removes a text trigger.
         When the trigger phrase is detected, the bot sends a message containing the text.
         
         valid flags:
@@ -78,9 +78,9 @@ class ReactionHandler(commands.Cog, name='Reaction'):
         await ctx.reply("Text trigger not found.")
 
     @commands.command(name="listtexttriggers", aliases=['listtexts'])
-    @commands.check(cogs.permissionshandler.PermissionsHandler.trial_moderator_check)
+    @commands.check(cogs.permissionshandler.staff_check)
     async def list_text_triggers(self, ctx):
-        """[Moderator command] Lists all registered trigger phrases and the corresponding texts to reply with"""
+        """Lists all registered trigger phrases and the corresponding texts to reply with"""
         text_triggers = await self.bot.servers.get_text_triggers(ctx.guild)
         if len(text_triggers) == 0:
             await ctx.reply('No text triggers are currently set')
@@ -88,7 +88,7 @@ class ReactionHandler(commands.Cog, name='Reaction'):
         await ctx.reply('\n'.join([f'{key}: {value}' for key, value in text_triggers.items()]))
 
     @commands.command(name="cleartexttriggers", aliases=['clearalltexts'])
-    @commands.check(cogs.permissionshandler.PermissionsHandler.executive_moderator_check)
+    @commands.check(cogs.permissionshandler.staff_check)
     async def clear_text_triggers(self, ctx):
         """Clears all currently set text triggers. This is irreversible."""
         async with ctx.channel.typing():
@@ -98,7 +98,7 @@ class ReactionHandler(commands.Cog, name='Reaction'):
         await ctx.reply("All text triggers have been removed.")
     
     @commands.command(name="settexttriggercooldown", aliases=['settextcooldown'])
-    @commands.check(cogs.permissionshandler.PermissionsHandler.executive_moderator_check)
+    @commands.check(cogs.permissionshandler.staff_check)
     async def set_text_trigger_cooldown(self, ctx:commands.Context, interval: utils.TimeDelta):
         """Set a cooldown on the automatic text trigger functionality of the bot. Text triggers are ignored during cooldown periods. This is server wide and not channel specific.
         
@@ -108,7 +108,7 @@ class ReactionHandler(commands.Cog, name='Reaction'):
         await ctx.reply(f"Set the text trigger cooldown to {interval}")
 
     @commands.command(name="gettexttriggercooldown", aliases=['texttriggercooldown?', 'textcooldown?', 'gettextcooldown'])
-    @commands.check(cogs.permissionshandler.PermissionsHandler.moderator_check)
+    @commands.check(cogs.permissionshandler.staff_check)
     async def get_text_trigger_cooldown(self, ctx:commands.Context):
         """Gets the cooldown on the automatic text trigger functionality of the bot. Text triggers are ignored during cooldown periods. This is server wide and not channel specific."""
         cooldown:typing.Dict[str, typing.Union[float, None]] = await self.bot.servers.get_server_parameters(ctx.guild, "random_text_trigger_cooldown")
