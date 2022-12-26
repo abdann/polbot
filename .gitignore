@@ -4,3 +4,7 @@ cogs/__pycache__
 servers/server_data.db
 venv/
 testsnip.py
+
+# Added by cargo
+
+/target
