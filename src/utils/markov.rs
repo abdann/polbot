@@ -1,24 +1,47 @@
 use std::fs::{read_dir, read_to_string};
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
-use regex::{Captures, Regex};
+use itertools::Itertools;
+use lazy_static::lazy_static;
 use markov_generator::Chain;
+use regex::Regex;
 
-pub fn initialize_base_corpus() {
-    let mut base_chain:Chain<String> = Chain::new(2);
-    let filtered_texts = get_all_valid_texts()
-                            .iter()
-                            .map(|file|read_to_string(file).expect("Could not read this file for some reason.")) // reading in contents of each file from the filepath
-                            .map(|text|text.split_whitespace()
-                                .filter(|word| !word.contains("")));
-    
+pub fn initialize_base_corpus() -> String {
+    let mut base_chain: Chain<String> = Chain::new(100); // Chose a depth of two for no reason really.
+    let valid_texts = get_all_valid_texts();
+    let filtered_texts = valid_texts
+        .into_iter()
+        .map(|file_path| {
+            let text = read_to_string(file_path)
+                .expect("Should be able to read files from file path strings slices.");
+            let result = extract_words(text);
+            result
+        })
+        .flatten();
 
+    base_chain.add_all(filtered_texts, markov_generator::AddEdges::Start);
+    base_chain.get(items)
+    base_chain.generate().take(10000).join(" ") // I *really* didn't want to have to clone the data. I was hoping I could do in-place manipulation but I guess not :sad:
 }
 
+// Do not take ownership here since data is simply processed here; we may want to use the original data for other purposes, therefore we don't want to invalidate it by taking ownership in the function parameter. This is why we use lifetimes.
+fn extract_words(text: String) -> Vec<String> {
+    lazy_static! {
+        static ref WORD_EXTRACT: Regex = Regex::new(r"\w+").unwrap();
+    } // This is here to make sure that the compiler only makes this regex expression *once*, since compiling regex patterns is an expensive operation.
+
+    WORD_EXTRACT
+        .find_iter(&text)
+        .map(|thing| thing.as_str().to_owned())
+        .collect()
+}
+// Take ownership here since data originates here
 fn get_all_valid_texts() -> Vec<String> {
-    let mut returnable:Vec<String> = Vec::new();
+    let mut returnable: Vec<String> = Vec::new();
     let corpi_path = Path::new("corpi/");
-    for thing in read_dir(corpi_path).expect("Expected corpus directory. Call binary or tests from root dir.") {
+    for thing in read_dir(corpi_path)
+        .expect("Expected corpus directory. Call binary or tests from root dir.")
+    {
         if let Ok(path) = thing {
             let filetype_result = path.file_type();
             if let Ok(filetype) = filetype_result {
@@ -32,9 +55,8 @@ fn get_all_valid_texts() -> Vec<String> {
                                 .path()
                                 .to_str()
                                 .expect("Filename contains invalid formatting. Please make sure filenames consist of valid UTF-8 code.")
-                                .to_string());
+                                .to_owned()); // Decide to yield ownership since no one else can.
                             }
-
             }
         }
     }
@@ -47,13 +69,30 @@ mod tests {
 
     #[test]
     fn test_get_all_valid_texts() {
-        let correct = vec!
-            [
-            "corpi/The Conquest of Bread.txt".to_string(),
-            "corpi/The Communist Manifesto.txt".to_string(),
+        let correct = vec![
             "corpi/Anatomy of The State.txt".to_string(),
-            "corpi/The Doctrine of Fascism.txt".to_string()
-            ]; // Modify this correct vector as needed. As of the writing of this unit test, these were the texts found in the corpi folder.
-        assert_eq!(correct, get_all_valid_texts());
+            "corpi/The Communist Manifesto.txt".to_string(),
+            "corpi/The Conquest of Bread.txt".to_string(),
+            "corpi/The Doctrine of Fascism.txt".to_string(),
+        ]; // Modify this correct vector as needed. As of the writing of this unit test, these were the texts found in the corpi folder.
+        let mut perhaps_correct = get_all_valid_texts();
+        perhaps_correct.sort();
+        assert_eq!(correct, perhaps_correct);
+    }
+
+    #[test]
+    fn test_extract_words() {
+        // Sham test by checking that the number of words in The Conquest of Bread is the same as the length of the vector returned from extract words
+        assert_eq!(
+            74460,
+            extract_words(read_to_string("corpi/The Conquest of Bread.txt").unwrap()).len()
+        )
+    }
+
+    #[test]
+    fn test_initialize_corpus() {
+        // Just goofing around
+        println!("{}", initialize_base_corpus());
+        assert!(true);
     }
 }
