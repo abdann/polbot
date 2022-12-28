@@ -3,25 +3,14 @@ use std::path::Path;
 
 use itertools::Itertools;
 use lazy_static::lazy_static;
-use markov_generator::Chain;
+use markov;
 use regex::Regex;
 
-pub fn initialize_base_corpus() -> String {
-    let mut base_chain: Chain<String> = Chain::new(100); // Chose a depth of two for no reason really.
+/** Initializes the base chain from the original texts. */
+pub fn initialize_base_chain() -> markov::Chain<String> {
+    let mut base_chain: markov::Chain<String> = markov::Chain::new(); // Chose a depth of two for no reason really.
     let valid_texts = get_all_valid_texts();
-    let filtered_texts = valid_texts
-        .into_iter()
-        .map(|file_path| {
-            let text = read_to_string(file_path)
-                .expect("Should be able to read files from file path strings slices.");
-            let result = extract_words(text);
-            result
-        })
-        .flatten();
-
-    base_chain.add_all(filtered_texts, markov_generator::AddEdges::Start);
-    base_chain.get(items)
-    base_chain.generate().take(10000).join(" ") // I *really* didn't want to have to clone the data. I was hoping I could do in-place manipulation but I guess not :sad:
+    
 }
 
 // Do not take ownership here since data is simply processed here; we may want to use the original data for other purposes, therefore we don't want to invalidate it by taking ownership in the function parameter. This is why we use lifetimes.
@@ -92,7 +81,7 @@ mod tests {
     #[test]
     fn test_initialize_corpus() {
         // Just goofing around
-        println!("{}", initialize_base_corpus());
+        println!("{}", initialize_base_corpus().split_whitespace().into_iter().take(50).join(" "));
         assert!(true);
     }
 }
