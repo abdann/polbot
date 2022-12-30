@@ -1,4 +1,5 @@
-use std::fs::{read_dir, read_to_string};
+use std::fs::{read_dir, File};
+use std::io::{Read, Write};
 use std::path::Path;
 
 use itertools::Itertools;
@@ -6,27 +7,82 @@ use lazy_static::lazy_static;
 use markov;
 use regex::Regex;
 
-/** Initializes the base chain from the original texts. */
-pub fn initialize_base_chain() -> markov::Chain<String> {
-    let mut base_chain: markov::Chain<String> = markov::Chain::new(); // Chose a depth of two for no reason really.
-    let valid_texts = get_all_valid_texts();
-    
+const BASECHAINPATH: &str = "corpi/politicalchain";
+
+/** Initializes a base markov chain based on the files in the corpus folder. This function assumes that the files are formatted properly for the markov feeder. */
+fn initialize_base_markov_chain() -> markov::Chain<String> {
+    let mut base_chain: markov::Chain<String> = markov::Chain::new();
+    // This assumes that the files are already formatted correctly using format_corpus_files
+    for text_file in get_all_valid_texts().into_iter() {
+        base_chain
+            .feed_file(text_file)
+            .expect("Should be able to feed files into the base markov chain.");
+    }
+    base_chain
+        .save(BASECHAINPATH)
+        .expect("Should be able to save chain");
+
+    base_chain
 }
 
-// Do not take ownership here since data is simply processed here; we may want to use the original data for other purposes, therefore we don't want to invalidate it by taking ownership in the function parameter. This is why we use lifetimes.
-fn extract_words(text: String) -> Vec<String> {
-    lazy_static! {
-        static ref WORD_EXTRACT: Regex = Regex::new(r"\w+").unwrap();
-    } // This is here to make sure that the compiler only makes this regex expression *once*, since compiling regex patterns is an expensive operation.
+fn load_markov_chain() -> markov::Chain<String> {
+    let base_chain_result: Result<markov::Chain<String>, std::io::Error> =
+        markov::Chain::load(BASECHAINPATH);
+    base_chain_result.expect("Should be able to return the base chain unless there is an IO error")
+}
 
-    WORD_EXTRACT
-        .find_iter(&text)
-        .map(|thing| thing.as_str().to_owned())
+fn extract_sentences(string_buffer: &str) -> Vec<&str> {
+    lazy_static! {
+        static ref SENTENCE_EXTRACT: Regex =
+            Regex::new("[A-Za-z0-9'\";:,]([A-Za-z0-9\\s'\";:,]|\\.[^\\s])*[.!?]")
+                .expect("Should be valid regex");
+    } // Make this lazy static since this is an expensive operation and we only need it compiled once.
+    SENTENCE_EXTRACT
+        .find_iter(string_buffer)
+        .map(|thing| thing.as_str())
         .collect()
 }
-// Take ownership here since data originates here
+
+/**Formats all files in the corpi/ directory into the proper form for a markov chain reader. In the bot, this would be called with a value of true*/
+fn format_corpus_files(delete_old_files: bool) {
+    // get the names of all the text files in the corpus directory.
+    let valid_texts = get_all_valid_texts();
+    for file_name in valid_texts {
+        // Open each file
+        let mut base_file = File::open(&file_name)
+            .expect("We should be able to read these files since we *just* checked them.");
+
+        // Make a string buffer
+        let mut temp_string = String::new();
+        // Read in base file into temp_string
+        base_file
+            .read_to_string(&mut temp_string)
+            .expect("Should be able to write to string buffer.");
+
+        temp_string = temp_string.replace("\n", " ").replace("\t", " "); // Replaces newlines and tabs with empty strings.
+
+        // extract sentences, then return as a sentence per newline.
+        temp_string = extract_sentences(&temp_string).into_iter().join("\n");
+
+        // choose whether to save as new files or rename with a _temp suffix
+        let final_name: String;
+        if delete_old_files {
+            final_name = file_name;
+        } else {
+            final_name = file_name.replace(".txt", "_temp.txt");
+        }
+        //Create the final file naming it final name
+        let mut final_file =
+            File::create(final_name).expect("Should be able to create a write only file.");
+        // Write the temp_string to the final_file
+        final_file
+            .write(temp_string.as_bytes())
+            .expect("Should be able to write to created file.");
+    }
+}
+/** Returns a vector of strings representing the filepaths of .txt files in the corpi folder */
 fn get_all_valid_texts() -> Vec<String> {
-    let mut returnable: Vec<String> = Vec::new();
+    let mut valid_texts: Vec<String> = Vec::new();
     let corpi_path = Path::new("corpi/");
     for thing in read_dir(corpi_path)
         .expect("Expected corpus directory. Call binary or tests from root dir.")
@@ -39,7 +95,7 @@ fn get_all_valid_texts() -> Vec<String> {
                     .to_str()
                     .expect("Filename contains invalid formatting. Please make sure filenames consist of valid UTF-8 code.")
                     .ends_with(".txt") {
-                        returnable.push(
+                        valid_texts.push(
                             path
                                 .path()
                                 .to_str()
@@ -49,7 +105,7 @@ fn get_all_valid_texts() -> Vec<String> {
             }
         }
     }
-    returnable
+    valid_texts
 }
 
 #[cfg(test)]
@@ -70,18 +126,38 @@ mod tests {
     }
 
     #[test]
-    fn test_extract_words() {
-        // Sham test by checking that the number of words in The Conquest of Bread is the same as the length of the vector returned from extract words
-        assert_eq!(
-            74460,
-            extract_words(read_to_string("corpi/The Conquest of Bread.txt").unwrap()).len()
-        )
+    fn test_initialize_base_chain() {
+        let base_chain = initialize_base_markov_chain();
+        if Path::new("corpi/politicalchain")
+            .try_exists()
+            .expect("some wierd error idk")
+        {
+            println!("chain was saved to disk!")
+        } else {
+            println!("chain was not saved to disk")
+        }
+        for i in 0..10 {
+            println!("{}th string produced:", i);
+            println!("{}", base_chain.generate_str());
+            println!("");
+        }
     }
 
     #[test]
-    fn test_initialize_corpus() {
-        // Just goofing around
-        println!("{}", initialize_base_corpus().split_whitespace().into_iter().take(50).join(" "));
+    fn test_extract_sentences() {
+        let test_text = "I love pie. 
+        Pie is Amazing!   Truly, isn't pie the best?";
+        let correct = vec![
+            "I love pie.",
+            "Pie is Amazing!",
+            "Truly, isn't pie the best?",
+        ];
+        assert_eq!(correct, extract_sentences(test_text));
+    }
+
+    #[test]
+    fn test_format_corpus_files() {
+        format_corpus_files(true);
         assert!(true);
     }
 }
